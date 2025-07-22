@@ -1,0 +1,539 @@
+.dark {
+
+    //General 
+    body {
+        background-color: $dark-light-100;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .h1,
+        .h2,
+        .h3,
+        .h4,
+        .h5,
+        .h6 {
+            color: $dark-gray-900;
+            font-family: $font-family-primary;
+            font-weight: $font-weight-bold;
+            margin-bottom: 0;
+        }
+
+        p {
+            color: $dark-gray-600;
+        }
+
+        a {
+            color: $dark-gray-600;
+        }
+
+        i {
+            color: $dark-gray-900;
+        }
+
+        input {
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+        }
+
+        .card {
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+            box-shadow: none;
+            .card-footer{
+                border-color: $dark-light-900;
+            }
+        }
+
+        .form-label {
+            color: $dark-gray-300;
+        }
+
+        .form-control {
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+        }
+
+        .bootstrap-tagsinput {
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+
+            .tag {
+                background-color: $dark-primary;
+            }
+        }
+
+        .form-control:focus {
+            background-color: $dark-primary;
+            color: $dark-gray-900;
+            border: 1px solid $dark-light-900;
+        }
+
+        .select2-dropdown {
+            border: 1px solid $dark-light-900;
+        }
+
+        span.select2-container.select2-container--default.select2-container--open {
+            box-shadow: none;
+        }
+
+        .select2-container--default {
+            .select2-selection--single {
+                background-color: $dark-primary;
+                border: 1px solid $dark-light-900;
+            }
+
+            .select2-results__option[aria-selected=true] {
+                background-color: $primary;
+                border: 1px solid $dark-light-900;
+                color: $primary;
+            }
+
+            .select2-results__option[aria-selected] {
+                background-color: $dark-primary;
+                border: 1px solid $dark-light-900;
+
+            }
+        }
+
+        .bg-light-300 {
+            background-color: $dark-light-300 !important;
+        }
+
+        .bg-light-500 {
+            background-color: $dark-light-500 !important;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid $dark-light-900 !important;
+        }
+
+        .bg-white {
+            background-color: $dark-primary !important;
+            color: $dark-gray-900;
+        }
+        .btn-light{
+            background-color: $dark-light-900;
+            border: 1px solid $dark-light-900;
+            color: $white;
+        }
+        .btn-white{
+            background-color: $dark-primary !important;
+            border: 1px solid $dark-primary;
+            color: $dark-gray-900;
+        }
+
+        .dropdown-item:not(.active):hover,
+        .dropdown-item:not(.active):focus,
+        .dropdown-item:not(.active):active {
+            background-color: $dark-primary;
+            color: $dark-gray-900 !important;
+        }
+
+        .border-end {
+            border-inline-end: 1px solid $dark-light-900 !important;
+        }
+
+        .text-dark {
+            color: $dark-gray-900 !important;
+        }
+
+        .border {
+            border: 1px solid $dark-light-900 !important;
+        }
+
+        .dropdown {
+            .dropdown-toggle {
+                border: 1px solid $dark-light-900;
+                color: $dark-gray-900;
+                background-color: $dark-primary;
+            }
+        }
+
+        .dropdown-item {
+            background-color: $dark-primary;
+            color: $dark-gray-900 !important;
+            &.active {
+                background-color: $dark-light-900;
+                color: $dark-gray-900 !important;
+            }
+        }
+
+        .dropdown-menu {
+            border: 1px solid $dark-light-900;
+        }
+
+        .bg-light {
+            background-color: $dark-light-900 !important;
+            border: 1px solid $dark-light-900 !important;
+            color: $dark-gray-900;
+        }
+        .text-gray-9{
+            color: $dark-gray-900 !important;
+        }
+        .paginations {
+            .page-link-1{
+                background-color: $dark-light-900;
+            }
+        }
+
+        #calendar-book .fc-toolbar-chunk .fc-prev-button, #calendar-book .fc-toolbar-chunk .fc-next-button {
+            border: 1px solid $dark-light-900;
+            background: $dark-primary;
+            color: $dark-gray-900;
+        }
+
+        .fc-scrollgrid {
+            border: 1px solid $dark-light-900;
+        }
+        .fc-col-header-cell  {
+            border: 1px solid $dark-light-900;
+        }
+        .fc-day-other{
+            border: 1px solid $dark-light-900;
+        }
+        .fc-theme-bootstrap5 td{
+            border: 1px solid $dark-light-900;
+        }
+        .fc-theme-bootstrap5-shaded{
+            background-color: $dark-primary;
+        }
+        .fc-list{
+            border: 1px solid $dark-light-900;
+        }
+        .bg-gray{
+            background-color: $dark-light-900 !important;
+            color: $dark-gray-900;
+        }
+        //Header
+        .provider-header {
+            background-color: $dark-light-900;
+            border-bottom: 1px solid $dark-light-900;
+
+            .header-left {
+                background-color: $dark-light-900;
+                border-bottom: 1px solid $dark-light-900;
+            }
+
+            .searchinputs {
+                input {
+                    background-color: $dark-primary;
+                    border: 1px solid $dark-light-900;
+                }
+
+                .search-addon {
+                    span {
+                        background-color: $dark-primary;
+                    }
+                }
+            }
+
+            .provider-head-links {
+                a {
+                    background-color: $dark-primary;
+                    border: 1px solid $dark-light-900;
+                }
+            }
+
+            .dropdown-menu.show {
+                box-shadow: none;
+                background-color: $dark-primary;
+            }
+
+            .text-dark {
+                color: $dark-gray-600 !important;
+            }
+
+        }
+
+        //Sider
+        .sidebar {
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+
+            .sidebar-menu {
+                ul {
+                    li {
+                        a {
+                            i {
+                                color: $dark-gray-900;
+                            }
+
+                            span {
+                                color: $dark-gray-900;
+                            }
+                        }
+
+                        &.submenu {
+                            ul {
+                                li {
+                                    a {
+                                        color: $dark-gray-900;
+                                        &.active{
+                                            color: $primary;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        &.active{
+                            a{
+                                i{
+                                    color: $primary;
+                                }
+                                span{
+                                    color: $primary;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .trend-tag{
+            background-color: $dark-light-900;
+            color: $dark-gray-900;
+        }
+        .trend-tag-2{
+            background-color: $dark-light-900;
+            color: $dark-gray-900;
+        }
+        .act-btn{
+            background-color: $dark-light-900;
+        }
+        .value select{
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+            color: $dark-gray-900;
+        }
+        .card{
+            .card-body{
+                a{
+                    color: $dark-gray-900;
+                }
+            }
+        }
+        .value {
+            span{
+                color: $dark-gray-900;
+            }
+        }
+        .tags{
+            background-color: $dark-primary;
+                border: 1px solid $dark-light-900;
+            &.active{
+                background-color: $primary;
+                border: 1px solid $primary;
+            }
+        }
+        .booking-list{
+            .booking-details{
+                li {
+                    .book-item{
+                        color: $dark-gray-900;
+                    }
+                }
+            }
+        } 
+        .chat-cont-left {
+            .chat-users-list {
+                .chat-member {
+                    background: $dark-primary;
+                }
+            }
+        }
+        .chat-cont-right {
+            .card-header {
+                border-bottom: 1px solid $dark-light-900;
+            }
+        }
+        .msg_card_body {
+            .media {
+                &.sent {
+                    .media-body {
+                        .msg-box {
+                            .received-message{
+                                background-color: $dark-light-500;
+                            }
+                            &:first-child {
+                                
+                                .sent-message {
+                                   
+                                    background: $dark-light-500;
+                                   
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .msg_card_body {
+            .media {
+                &.received {
+                    .media-body {
+                        .msg-box {
+                            .received-message {
+                                background-color: $dark-light-500;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .day-badge::after{
+            border: 1px solid $dark-light-900;
+        }
+        .avatar.online:before{
+            border: 2px solid $dark-primary !important;
+        } 
+        .avatar.offline:before{
+            border: 2px solid $dark-primary !important;
+        }
+        .table-responsive{
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+            .table{
+                
+                td{
+                    p{
+                        color: $dark-gray-900;
+                    }
+                }
+                thead{
+                    &.thead-light {
+                        th{
+                            background-color: $dark-light-600;
+                            color: $dark-gray-900;
+                            border-color: $dark-light-900;
+                        }
+                       
+                    }
+                    tr{
+                        border: 1px solid $dark-light-900;
+                    }
+                }
+                tbody{
+                    tr{
+                        border: 1px solid $dark-light-900;
+                        td{
+                            background-color: $dark-primary;
+                            color: $dark-gray-600;
+                            h6{
+                                a{
+                                    color: $dark-gray-900;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .user-icon a{
+            background-color: $dark-light-500;
+        }
+
+        .modal{
+            .modal-dialog{
+                .modal-content{
+                    background-color: $dark-primary;
+                    .modal-footer{
+                        border-top: 1px solid $dark-light-900;
+                    }
+                }
+            }
+        }
+        .col-form-label{
+            color: $dark-gray-900;
+        }
+        .bootstrap-datetimepicker-widget table th.prev span, .bootstrap-datetimepicker-widget table th.next span{
+            border: 1px solid $dark-light-900;
+        }
+        .bootstrap-datetimepicker-widget .list-unstyled{
+            background-color: $dark-primary;
+            border: 1px solid $dark-light-900;
+        }
+        .datepicker{
+            table{
+                thead{
+                    tr{
+                        th{
+                            color: $dark-gray-900;
+                        }
+                    }
+                }
+                tbody{
+                    td{
+                        color: $dark-gray-600;
+                        &:hover{
+                            background-color: $dark-gray-600;
+                            color: $dark-gray-900;
+                        }
+                    }
+                }
+                
+            }
+        }
+        .appointment-setting-list{
+            border: 1px solid $dark-light-900;
+        }
+        .linked-item{
+            border: 1px solid $dark-light-900;
+        }
+        .connected-apps {
+            .card-body {
+                .app-footer-content {
+                    border-top: 1px solid $dark-light-900;
+                }
+            }
+        }
+
+        .profile-verification {
+            .card {
+                .card-body {
+                    .verification-body {
+                        .icon {
+                            span {
+                                background-color: $dark-light-500;
+                            }
+                        }
+                    }
+                    .verification-footer{
+                        border-top: 1px solid $dark-light-900;
+                    }
+                }
+            }
+        }
+        .booking-list {
+            .booking-img {
+                .fav-item {
+                    .fav-icon {
+                        background: $dark-primary;
+                        color: $dark-gray-900;
+                    }
+                }
+            }
+        }
+        .sidebar-layout{
+            background-color: $dark-primary;
+        }
+        .toggle-sidebar {
+            .sidebar-header{
+                border-bottom: 1px solid $dark-light-900;
+            }
+        }
+        .bk-wrap {
+            border-bottom: 1px solid $dark-light-900;
+        }
+        .bk-history {
+            span{
+                background-color: $primary;
+            }
+        }
+    }
+}

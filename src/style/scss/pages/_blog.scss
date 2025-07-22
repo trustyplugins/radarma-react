@@ -1,0 +1,14 @@
+.blog-list{
+    margin-bottom: 24px;
+    .blog-content-body{
+        padding: 20px;
+        border: 1px solid $light-900;
+        .blog-profile{
+            padding-right:16px;
+            border-right: 1px solid $light-900;
+            &:last-child{
+                border: none;
+            }
+        }
+    }
+}

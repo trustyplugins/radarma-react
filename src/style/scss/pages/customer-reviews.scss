@@ -1,0 +1,17 @@
+.review-list{
+    .card{
+        border: 1px solid $light-900;
+        box-shadow: none;
+        .card-body{
+            .review-img{
+                margin-right: 10px;
+                img{
+                    width: 90px;
+                    height: 90px;
+                    object-fit: cover;
+                    
+                }
+            }
+        }
+    }
+}

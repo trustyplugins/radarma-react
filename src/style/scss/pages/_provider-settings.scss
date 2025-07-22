@@ -1,0 +1,394 @@
+.appointment-setting-list {
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid $light-900;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    box-shadow: 2px 3px 5px 0px #00000000;
+
+    h5 {
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+
+    .form-group {
+
+        .select2-selection--single {
+            min-width: 125px;
+        }
+
+    }
+}
+
+//Accounts Settings
+.user-title {
+    margin-bottom: 20px;
+}
+
+.pro-picture {
+    display: flex;
+    margin-bottom: 30px;
+
+    .pro-img {
+        margin-right: 13px;
+    }
+}
+
+.general-info {
+    margin-bottom: 30px;
+}
+
+//Security Settings
+.linked-item {
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid $light-900;
+
+    .linked-acc {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+
+        .link-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            background-color: $light-900;
+            margin-right: 8px;
+
+            i {
+                color: $gray-900;
+            }
+        }
+
+        .linked-info {
+            flex: 1;
+        }
+
+    }
+
+    .linked-action {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+}
+
+//Plan & Billing
+.subhead-title {
+    margin-bottom: 20px;
+}
+
+.card {
+    .card-body {
+        padding: 15px;
+
+        .plan-info {
+            flex: 1;
+            margin-bottom: 24px;
+
+            .plan-term {
+                h6 {
+                    font-size: 16px;
+                }
+
+                p {
+                    font-size: 14px;
+                }
+            }
+
+            .plan-price {
+                p {
+                    font-size: 12px;
+                }
+            }
+        }
+
+        .plan-btns {
+            flex: 1;
+
+            .plan-term {
+                h6 {
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+}
+
+
+.card-payments {
+    border: 2px solid transparent;
+
+    &.active {
+        border: 2px solid $primary;
+
+        &::before {
+            position: absolute;
+            content: '\f058';
+            font-family: 'FontAwesome';
+            color: $primary;
+            right: -8px;
+            top: -14px;
+            z-index: 1;
+        }
+    }
+
+    .card-body {
+        h6 {
+            font-size: 14px;
+            color: $gray-600;
+            margin-bottom: 16px;
+        }
+
+        .card-num {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+            flex-wrap: wrap;
+
+            h6 {
+                font-size: 16px;
+
+                span {
+                    font-size: 16px;
+                }
+            }
+
+            .visa-img {
+                background: $white;
+                border: 1px solid $light-900;
+                border-radius: 4px;
+                padding: 2px 4px;
+                margin-right: 8px;
+
+            }
+        }
+    }
+}
+
+.card-payment-add {
+    background: $white;
+    border: 2px solid $light-900;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    padding: 30px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    justify-content: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+
+    a {
+        span {
+            padding: 9px;
+            background-color: #98A2B3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            i {
+                color: $white;
+            }
+        }
+    }
+}
+
+
+//Payment Methods
+.payment {
+    margin-bottom: 38px;
+}
+
+.subscription-details {
+    padding: 15px;
+    border: 1px solid $light-900;
+    border-radius: 6px;
+    margin-bottom: 16px;
+
+    .details-list {
+        margin-bottom: 13px;
+    }
+}
+
+.pay-btn {
+    margin-bottom: 16px;
+}
+
+//provider payment success
+.img-success {
+    margin-bottom: 62px;
+    width: 371px;
+    height: 297px;
+}
+
+//Provider Subscribtion
+.choose-title {
+    .status-toggle {
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+}
+
+.subscription {
+    .card {
+        padding: 20px;
+    }
+
+    .provider-price {
+        .choose-title {
+            margin-bottom: 30px;
+        }
+
+        .card {
+            padding: 20px;
+
+            .card-header {
+                .price-level {
+                    h6 {
+                        margin-bottom: 10px;
+                    }
+                }
+            }
+
+            .card-body {
+                ul {
+                    li {
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                    }
+                }
+            }
+        }
+
+        .business-card {
+            background-color: $light-500;
+        }
+    }
+
+}
+
+
+//Provider Notification
+.notification {
+    margin-bottom: 40px;
+    table {
+        tbody {
+            tr {
+                td {
+                    p {
+                        font-size: 14px;
+                        margin-bottom: 0;
+                        color: $gray-900;
+                    }
+
+                    .form-check-input {
+                        &:checked {
+                            background-color: $success;
+                            border: 1px solid $success;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+//Connected Apps
+.connected-apps {
+    .card-body {
+        padding: 20px;
+
+        .app-body-content {
+            margin-bottom: 20px;
+
+            span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: $light-900;
+                width: 46px;
+                height: 46px;
+            }
+        }
+
+        .app-footer-content {
+            padding-top: 20px;
+            border-top: 1px solid $light-900;
+            .form-check-input {
+                &:checked {
+                    background-color: $success;
+                    border: 1px solid $success;
+                }
+            }
+        }
+    }
+}
+
+//Profile Verification
+.profile-verification {
+    .card {
+        .card-body {
+            padding: 20px;
+            .verification-body{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-bottom: 20px;
+                .icon{
+                    margin-right: 16px;
+                    span{
+                        padding: 16px;
+                        background-color: $light-900;
+                    }
+                }
+            }
+            .verification-footer{
+                padding-top: 20px;
+                border-top: 1px solid $light-900;
+            }
+        }
+    }
+}
+
+.verification-document{
+    .modal-body{
+        .file-upload{
+            border: 2px dashed $light-900 ;
+        }
+        .passport-document{
+            padding: 16px;
+            border: 1px solid $light-900;
+            border-radius: 10px;
+            .file-icon{
+                display: flex;
+              span{
+                padding: 16px;
+                background-color: $light-500;
+                border-radius: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+            }
+            .file-progress{
+                flex: 1;
+                .progress-xs{
+                    height: .3125rem;
+                }
+            }
+            
+        }
+    }
+}

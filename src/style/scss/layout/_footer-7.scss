@@ -1,0 +1,102 @@
+.footer {
+    &.footer-nine {
+        background-color: $dark;
+        .footer-top {
+            padding: 40px 0 16px;
+            background-color: $dark;
+            .footer-widget {
+                h6 {
+                    color: $white;
+                }
+                .footer-menu {
+                    li {
+                        margin-bottom: 12px;
+                        display: block;
+                        a {
+                            color: $light-900;
+                            &:hover {
+                                color: $primary;
+                            }
+                        }
+                        &:last-child {
+                            margin-bottom: 0;
+                        }
+                    }
+                }
+                .footer-logo {
+                    margin-bottom: 24px;
+                }
+                p {
+                    color: $light;
+                    margin-bottom: 24px;
+                }
+            }
+            .footer-contact-info {
+                .footer-address {
+                    margin-bottom: 24px;
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                    span {
+                        width: 48px;
+                        height: 48px;
+                        color: $white;
+                        @include rounded(50%);
+                        background: $primary;
+                        font-size: $font-size-20;
+                        margin-right: 12px;
+                        -webkit-box-align: center;
+                        -ms-flex-align: center;
+                        align-items: center;
+                        display: -webkit-box;
+                        display: -ms-flexbox;
+                        display: flex;
+                        justify-content: center;
+                        position: unset;
+                    }
+                    h6 {
+                        font-size: $font-size-14;
+                        font-weight: $font-weight-medium;
+                        margin-bottom: 2px;
+                        color: $white;
+                        padding: 0;
+                    }
+                    p {
+                        color: $white;
+                        margin-bottom: 0;
+                        padding: 0;
+                    }
+                }
+            }
+        }
+        .social-icon {
+            li {
+                a {
+                    background: $white;
+                    color: $gray-900;
+                    &:hover {
+                        background: $primary;
+                        color: $white;
+                    }
+                }
+            }
+        }
+        .footer-bottom {
+            padding: 10px;
+            background-color: $dark;
+            border-top: 1px solid $gray-900;
+            .copyright {
+                padding: 0;
+                border: 0;
+                .copyright-text {                    
+                    p {
+                        color: $white;
+                        @include respond-below(lg) {
+                            font-size: $font-size-14;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

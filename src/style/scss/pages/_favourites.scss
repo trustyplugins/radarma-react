@@ -1,0 +1,18 @@
+.user-sidebar {
+    .user-sidebar-body {
+        ul {
+            li {
+                a {
+                    &.active{
+                        color: $primary;
+                    }
+                }
+            }
+        }
+
+    }
+}
+.tags{
+    padding: 8px;
+    border: 1px solid $light-900;
+}

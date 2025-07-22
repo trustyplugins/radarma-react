@@ -1,0 +1,78 @@
+/****** Utils ******/
+@import "utils/variables";
+@import "utils/mixins";
+
+/******* Base *******/
+@import "base/base";
+@import "base/background";
+
+/******* Components ******/
+@import "components/avatar";
+@import "components/boostrap";
+@import "components/button";
+@import "components/badge";
+@import "components/border";
+@import "components/dropdown";
+@import "components/font";
+@import "components/typography";
+@import "components/forms";
+@import "components/accordion";
+@import "components/cards";
+@import "components/grid";
+@import "components/cursor";
+@import "components/navs-tabs";
+@import "components/table";
+
+/****** Layout ******/
+@import "layout/common";
+@import "layout/content";
+@import "layout/breadcrumb";
+@import "layout/header-2";
+@import "layout/header-3";
+@import "layout/header-9";
+@import "layout/header";
+@import "layout/header-7";
+
+@import "layout/provider-header";
+@import "layout/footer";
+@import "layout/footer-7";
+@import "layout/sidebar";
+
+/******* Pages ******/
+@import "pages/dark-mode";
+@import "pages/home";
+@import "pages/services";
+@import "pages/service-details";
+@import "pages/providers";
+@import "pages/login";   
+@import "pages/categories";
+@import "pages/customer-booking";
+@import "pages/booking";
+@import "pages/chat";
+@import "pages/customer-wallet";
+@import "pages/favourites";
+@import "pages/customer-reviews";
+@import "pages/provider-settings";
+@import "pages/about-us";
+@import "pages/blog-details";
+@import "pages/blog";
+@import "pages/index-2";
+@import "pages/index-3";
+@import "pages/index-4";
+@import "pages/index-7";
+@import "pages/index-5";
+@import "pages/index-6";
+@import "pages/index-8";
+@import "pages/index-9";
+@import "pages/index-10";
+@import "pages/installer";
+@import "pages/service-request";
+
+/******* Vendors ******/
+@import "vendors/meanmenu";
+@import "vendors/select2";
+
+
+
+
+

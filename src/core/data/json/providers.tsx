@@ -1,0 +1,32 @@
+export const providersData = [
+  {
+    '#': '1',
+    providerName: 'Admin',
+    providerEmail: 'admin@example.com',
+    mobile: '+1 888 888 8888',
+    regDate: '30 Sep 2023',
+    lastActivity: '2 mins ago',
+    status: 'Active',
+    img: 'assets/admin/img/customer/user-01.jpg',
+  },
+  {
+    '#': '2',
+    providerName: 'John Doe',
+    providerEmail: 'Johndoe@example.com',
+    mobile: '518-837-9258',
+    regDate: '27 Sep 2023',
+    lastActivity: '10 mins ago',
+    status: 'Active',
+    img: 'assets/admin/img/customer/user-07.jpg',
+  },
+  {
+    '#': '3',
+    providerName: 'Robert',
+    providerEmail: 'robert@example.com',
+    mobile: '302-372-7812',
+    regDate: '25 Sep 2023',
+    lastActivity: 'Online',
+    status: 'Active',
+    img: 'assets/admin/img/customer/user-09.jpg',
+  },
+];

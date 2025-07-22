@@ -1,0 +1,116 @@
+// .authentication-page {
+//     overflow: hidden;
+//     height: 100vh;
+//     @include respond-below(xl) {
+//         overflow-y: auto;
+//     }
+// }
+.login-or {
+    text-align: center;
+    font-size: 15px;
+    color: $gray-700;
+    font-weight: $font-weight-medium;
+    position: relative;
+	&::after {
+		width: 100%;
+		content: "";
+		border-top: 1px solid $light-900;
+		position: absolute;
+		top: 50%;
+		right: 0;
+	}
+	&::before {
+		width: 100%;
+		content: "";
+		border-top: 1px solid $light-900;
+		position: absolute;
+		top: 50%;
+		left: 0;
+	}
+	.span-or {
+		background-color: $white;
+		padding: 0 10px;
+		z-index: 9;
+		position: relative;
+	}
+}
+.authentication-header {
+    background: transparent;
+    box-shadow: none;
+    padding: 20px 0;
+}
+.login-modules {
+    border-top: 1px dashed $light-900;
+}
+.bg-left-top {
+	position: absolute;
+	left: -100px;
+	top: -100px;
+	z-index: -1;
+	@include respond-below(sm) {
+		display: none;
+	}
+}
+.bg-right-bottom {
+	position: absolute;
+	right: -100px;
+	bottom: -100px;
+	z-index: -1;
+	@include respond-below(sm) {
+		display: none;
+	}
+}
+.otp-input {
+	input{
+		border: 2px solid $light-900;
+		&.active{
+			border: 2px solid $primary !important;
+		}
+	}
+}
+
+.password-strength span{
+	width: 100%;
+    height: 5px;
+    background: #e3e3e3;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+.poor-active span.active#poor,
+.poor-active span.active#poors {
+  background: $danger;
+}
+.avg-active span.active#poor,
+.avg-active span.active#weak,
+.avg-active span.active#poors,
+.avg-active span.active#weaks {
+  background: $warning;
+}
+.strong-active span.active#poor,
+.strong-active span.active#weak,
+.strong-active span.active#strong,
+.strong-active span.active#poors,
+.strong-active span.active#weaks,
+.strong-active span.active#strongs {
+  background: $info;
+}
+.heavy-active span.active#poor,
+.heavy-active span.active#weak,
+.heavy-active span.active#strong,
+.heavy-active span.active#heavy,
+.heavy-active span.active#poors,
+.heavy-active span.active#weaks,
+.heavy-active span.active#strongs,
+.heavy-active span.active#heavys {
+  background: $success;
+}
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+.maintenance-forms {
+	.form-control {
+		min-height: 37px;
+		height: 37px;
+	}
+}

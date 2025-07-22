@@ -1,0 +1,244 @@
+.wizard {
+	ul {
+		display: flex;
+		justify-content: center;
+		text-align: center;
+		margin-bottom: 50px;
+		li {
+			width: 100%;
+			position: relative;
+			display: flex;
+			justify-content: center;
+			h5 {
+				font-size: 16px;
+				margin: 10px 0;
+				font-weight: 400;
+			}
+			span.dot-active {
+				width: 18px;
+				height: 18px;
+				border: 1px solid #DDD;
+				background-color: #fff;
+				display: flex;
+				border-radius: 50%;
+				margin: auto;
+				margin-bottom: 0;
+				z-index: 1;
+			}
+			&::after {
+				content: "";
+				width: 50%;
+				height: 1px;
+				background: #DDD;
+				position: absolute;
+				bottom: 9px;
+				left: 0;
+			}
+			&::before {
+				content: "";
+				width: 100%;
+				height: 1px;
+				background: #DDD;
+				position: absolute;
+				bottom: 9px;
+				right: 0;
+			}
+			&:first-child {
+				&:before {
+					width: 50%;
+				}
+				&::after {
+					display: none;
+				}
+			}
+			&:last-child {
+				&::before {
+					display: none;
+				}
+			}
+		}
+		li.progress-activated {
+			&::after {
+				background: $primary;
+			}
+			&::before {
+				background: $primary;
+			}
+			span.dot-active {
+				border-color: $primary;
+				background-color: $primary;
+			}
+		}
+		li.progress-active {
+			&::after {
+				background: $primary;
+			}
+			span.dot-active {
+				border-color: $primary;
+			}
+		}
+	}
+}
+.profile-step {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.wizard-form-card {
+	padding: 24px;
+	background: #fff;
+	.card-title {
+		margin-bottom: 30px;
+		h4 {
+			margin-bottom: 5px;
+		}
+	}
+}
+.install-step {
+	border-radius: 10px;
+	background: #F9F9F9;
+	padding: 24px;
+	margin-bottom: 40px;
+	.requirment-field {
+		border-radius: 5px;
+		background: #FFF;
+		padding: 15px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 10px;
+		&:last-child {
+			margin-bottom: 0;
+		}
+		.elements-name {
+			i {
+				color: #05A144;
+				margin-right: 10px;
+			}
+			display: inline-flex;
+			align-items: baseline;
+			i.fa-circle-xmark {
+				color: #FF0101;
+			}
+		}
+		span.version {
+			display: inline-block;
+			border-radius: 5px;
+			border: 1px solid #05A144;
+			background: rgba(5, 161, 68, 0.04);
+			color: #05A144;
+			padding: 5px 15px;
+		}
+		span.error-msg {
+			color: #FF0101;
+		}
+	}
+	.files-list {
+		li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-bottom: 15px;
+			margin-bottom: 15px;
+			border-bottom: 1px solid #E1E1E1;
+			color: #858585;
+			&:last-child {
+				margin-bottom: 0;
+				padding-bottom: 0;
+				border: 0;
+			}
+			span.folder {
+				i {
+					color: #FFB800;
+					margin-right: 10px;
+				}
+				display: inline-flex;
+				align-items: baseline;
+			}
+			span {
+				i {
+					color: #05A144;
+				}
+			}
+		}
+	}
+	.install-user {
+		tr {
+			td {
+				color: #333;
+				&:first-child {
+					width: 120px;
+				}
+			}
+			margin-bottom: 15px;
+			display: table;
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+	}
+}
+.add-form-btn {
+	margin-top: 20px;
+	display: flex;
+	justify-content: space-between;
+	.pre-btn {
+		background: #E8E8E8;
+		border-color: #E8E8E8;
+		box-shadow: none;
+		color: #fff;
+	}
+}
+.initialization-form-set {
+	#first {
+		display: block;
+	}
+	.main-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+	}
+	fieldset {
+		display: none;
+	}
+}
+.rechange-details {
+	padding-bottom: 20px;
+	span {
+		border-radius: 10px;
+		background: rgba(5, 161, 68, 0.13);
+		color: #05A144;
+		padding: 20px;
+		display: block;
+		text-align: center;
+	}
+}
+.installation-header {
+	background: $white;
+	padding: 20px 0;
+	text-align: center;
+}
+
+@media only screen and (max-width: 575.98px) {
+.wizard ul li span.dot-active {
+	display: none;
+}
+.wizard ul li::before,.wizard ul li::after {
+	display: none;
+}
+.wizard ul {
+	flex-direction: column;
+	row-gap: 20px;
+}
+.wizard ul li {
+	border-bottom: 2px solid #F9F9F9;
+}
+.wizard ul li.progress-activated {
+	border-color: $primary;
+}
+.install-step .requirment-field {
+	flex-direction: column;
+	align-items: start;
+	row-gap: 10px;
+}
+}

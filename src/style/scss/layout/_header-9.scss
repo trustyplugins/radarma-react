@@ -1,0 +1,62 @@
+header {
+    &.header-five {
+        background-color: transparent;
+
+        .main-menu-wrapper {
+            nav {
+                .main-nav {
+                    li {
+                        a {
+                            color: $white;
+                        }
+                    }
+                }
+            }
+        }
+
+        &.fixed {
+            .main-menu-wrapper {
+                nav {
+                    .main-nav {
+                        li {
+                            a {
+                                color: $dark;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .header-button {
+                color: #28283C;
+
+                &.header-button-five {
+                    color: #fff;
+                }
+            }
+        }
+    }
+}
+
+.header.header-five .main-nav>li>a {
+    color: #fff;
+    @include respond-below(lg) {
+        color: $dark;
+    }
+}
+
+.header.header-five.fixed .main-nav li a {
+    color: #28283C;
+}
+
+.header-navbar-rht li>a.header-reg {
+    &.register {
+        color: #fff;
+    }
+
+}
+.header.header-five.fixed .header-navbar-rht li>a.header-reg {
+    &.register {
+        color: #28283C;
+    }
+}

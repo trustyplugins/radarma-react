@@ -1,0 +1,158 @@
+.booking-sidebar {
+    &.request-sidebar {
+        &::before {
+            display: none;
+        }
+        &::after {
+            display: none;
+        }
+        #bokingwizard {
+            li {
+                color: $gray-900;
+                font-size: 16px;
+                padding-left: 30px;
+                span {
+                    &::before {
+                        width: 20px;
+                        height: 20px;
+                        border-color: $gray-200;
+                        background: $light-500;
+                    }
+                    &::after {
+                        content: "";
+                        border: 4px solid $gray-200;
+                        border-radius: 50%;
+                        position: absolute;
+                        top: 9px;
+                        left: 6px;
+                    }
+                }
+                &::before {
+                    content: "";
+                    border: 1px solid $gray-200;
+                    width: 1px;
+                    height: calc(40% - 2px);
+                    position: absolute;
+                    top: 28px;
+                    left: 9px;
+                    border-radius: 30px;
+                }
+                &:last-child {
+                    &::before {
+                        display: none;
+                    }
+                }
+                &.active {
+                    &::before {
+                        border-color: $primary;
+                    }
+                    span {
+                        &::after {
+                            border-color: $primary;
+                        }
+                        &::before {
+                            border-color: $primary;
+                        }
+                    }
+                }
+                &.activated {
+                    &::before {
+                        border-color: $success;
+                    }
+                    span {
+                        &::after {
+                            font-family: "Fontawesome";
+                            content: "\f00c";
+                            color: $white;
+                            position: absolute;
+                            top: 5px;
+                            left: 5px;
+                            font-size: 10px;
+                            border: 0;
+                        }
+                        &::before {
+                            border: 1px solid $success;
+                            background: $success;
+                        }
+                    }
+                }
+            }
+           
+        }
+    }
+}
+.form-floating {
+    .form-control {
+        min-height: 40px;
+        height: 40px;
+    }
+    label {
+        padding: 0.5rem 0.75rem;
+        color: $gray-600;
+    }
+}
+.form-floating > .form-control:not(:placeholder-shown) ~ label,.form-control:focus~label {
+    top: -10px;
+    color: $gray-900;
+}
+.form-floating>.form-control:not(:placeholder-shown),.form-floating .form-control:focus {
+    padding-top: 16px;
+}
+.custom-increment {
+    .quantity-btn {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: $dark;
+        color: $white;
+        padding: 0;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+        &:hover {
+            background: $primary;
+        }
+    }
+    input {
+        width: 40px;
+        border: 0;
+        text-align: center;
+        padding: 0 5px;
+    }
+}
+.select-floating-label {
+    position: absolute;
+    top: -10px;
+    z-index: 100;
+    background: #fff;
+    padding: 2px;
+    left: 10px;
+}
+.request-wizard {
+    fieldset {
+        .card {
+            .card-body {
+                padding: 20px;
+                @include respond-below(xl) {
+                    padding: 15px;
+                }
+            }
+        }
+    }
+}
+.upload-field {
+    border: 1px dashed $gray-200;
+    border-radius: 5px;
+    padding: 20px;
+}
+.review-order {
+    background: $secondary-100;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    .review-item {
+        min-width: 150px;
+    }
+}

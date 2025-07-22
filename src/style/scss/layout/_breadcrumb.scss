@@ -1,0 +1,40 @@
+.breadcrumb-bar {
+    background: $light-200;
+    padding: 40px 0;
+    position: relative;
+    .breadcrumb-title {
+        font-size: $font-size-36;
+    }
+}
+.breadcrumb {
+    .breadcrumb-item {
+        color: $gray-600;
+        & +.breadcrumb-item {
+            &:before {
+                content: "\f054";
+                font-family: 'fontawesome';
+                line-height: 2;
+                font-size: $font-size-12;
+            }
+        }
+        &.active {
+            color: $gray-900;
+        }
+    }
+}
+.breadcrumb-bg-1 {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    @include respond-below(md) {
+        display: none;
+    }
+}
+.breadcrumb-bg-2 {
+    position: absolute;
+    right: 0;
+    top: 0;
+    @include respond-below(md) {
+        display: none;
+    }
+}
