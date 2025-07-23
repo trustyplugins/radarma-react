@@ -4,11 +4,18 @@ import AdminHeader from './common/header';
 import AdminSidebar from './common/sidebar';
 import { useLocation } from 'react-router-dom';
 import PageLoader from '../../core/loader';
+import { useDispatch, useSelector } from 'react-redux';
 import '../../style/admin/css/admin.css';
 const Admin = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-
+  const toggle_data = useSelector(
+    (state: ProviderEarningsadmindatas) => state.ProviderEarningsAdmin,
+  );
+  const toggle_data_2 = useSelector((state: AppState) => state.toggleSidebar2);
+  const mobileMenu = useSelector((state: AppState) => state.toggleSidebar);
+  const mouse_data = useSelector((state: AppState) => state.mouseOverSidebar);
+  const mobileSidebar = useSelector((state: AppState) => state.mobileSidebar);
   useEffect(() => {
     setIsLoading(true);
   }, [location.pathname]);
@@ -30,8 +37,8 @@ const Admin = () => {
       {!isLoading && (
         <>
           <div
-            className='admin'>
-            <div className="main-wrapper ">
+            className={`admin ${toggle_data_2 ? 'mini-sidebar' : ''} ${mobileSidebar ? 'menu-opened slide-nav' : ''} ${ mouse_data ? 'expand-menu' : ''}`}>
+           <div className={`main-wrapper ${mobileMenu ? 'menu-opened' : ''}`}>
               {location.pathname == '/signin' ||
                 location.pathname == '/signup' ||
                 location.pathname == '/forget-password' ||
