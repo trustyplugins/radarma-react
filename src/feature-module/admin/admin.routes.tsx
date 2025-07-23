@@ -61,7 +61,7 @@ import SocialAuthentication from './setting/social-authentication';
 import SocialProfile from './setting/social-profile';
 import StorageSettings from './setting/storage-settings';
 import CategoriesList from './categories/categories-list';
-import Categories from '../frontend/pages/categories/categories';
+//import Categories from '../frontend/pages/categories/categories';
 import SubCategoriesList from './categories/subcategories-list';
 import States from './location/states';
 import VerficationRequest from './verfication-request/verfication-request';
@@ -160,12 +160,12 @@ const AdminRoutes = () => {
       element: <MenuManagement />,
       route: Route,
     },
-    {
-      path: '/categories',
-      name: 'categories',
-      element: <Categories />,
-      route: Route,
-    },
+    // {
+    //   path: '/categories',
+    //   name: 'categories',
+    //   element: <Categories />,
+    //   route: Route,
+    // },
     {
       path: '/finance-accounts/cash-on-delivery',
       name: 'cashOnDelivery',
@@ -731,12 +731,17 @@ const AdminRoutes = () => {
       route: Route,
     },
     {
+      path: '/',
+      name: 'dashboard',
+      element: <Dashboard />,
+      route: Route,
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       element: <Dashboard />,
       route: Route,
     },
-
     {
       path: '/finance-accounts/refund-request',
       name: 'refund-request',

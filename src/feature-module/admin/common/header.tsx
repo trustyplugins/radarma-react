@@ -74,7 +74,7 @@ const AdminHeader = () => {
               View Site
             </Link>
           </li>
-          <li className="nav-item dropdown has-arrow dropdown-heads flag-nav">
+          {/* <li className="nav-item dropdown has-arrow dropdown-heads flag-nav">
             <Link
               className="nav-link"
               data-bs-toggle="dropdown"
@@ -330,7 +330,7 @@ const AdminHeader = () => {
                 <Link to="notifications">View all Notifications</Link>
               </div>
             </div>
-          </li>
+          </li> */}
           <li className="nav-item  has-arrow dropdown-heads ">
             <Link
               onClick={toggleFullscreen}

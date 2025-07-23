@@ -4,7 +4,7 @@ import AdminHeader from './common/header';
 import AdminSidebar from './common/sidebar';
 import { useLocation } from 'react-router-dom';
 import PageLoader from '../../core/loader';
-// import '../../style/admin/css/admin.css'
+import '../../style/admin/css/admin.css';
 const Admin = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -21,26 +21,30 @@ const Admin = () => {
   }, [location.pathname]);
   useEffect(() => {
     window.location.pathname.includes("/admin")
-    ? import("../../style/admin/css/admin.css")
-    : import("../../style/scss/main.scss");
+      ? import("../../style/admin/css/admin.css")
+      : import("../../style/scss/main.scss");
   }, [location.pathname])
   return (
     <>
       {isLoading && <PageLoader />}
       {!isLoading && (
         <>
-          {location.pathname == '/admin/signin' ||
-          location.pathname == '/admin/signup' ||
-          location.pathname == '/admin/forget-password' ||
-          location.pathname == '/admin/wallet-history' ? (
-            <></>
-          ) : (
-            <>
-              <AdminHeader />
-              <AdminSidebar />
-            </>
-          )}
-          <AdminRoutes />
+          <div
+            className='admin'>
+            <div className="main-wrapper ">
+              {location.pathname == '/signin' ||
+                location.pathname == '/signup' ||
+                location.pathname == '/forget-password' ||
+                location.pathname == '/wallet-history' ? (
+                <></>
+              ) : (
+                <>
+                  <AdminHeader />
+                  <AdminSidebar />
+                </>
+              )}
+              <AdminRoutes />
+            </div></div>
         </>
       )}
     </>

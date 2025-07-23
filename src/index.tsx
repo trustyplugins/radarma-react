@@ -10,27 +10,14 @@ import store from './core/data/redux/store';
 import "../src/style/icon/tabler-icons/webfont/tabler-icons.css";
 import "../src/style/icon/feather/css/iconfont.css";
 import 'aos/dist/aos.css';
-import { base_path } from './environment';
 import AllRoutes from './feature-module/router/router';
-
 const rootElement = document.getElementById('root');
-// const location = window.location.pathname;
-
-// useEffect(() => {
-//   window.location.pathname.includes("/admin")
-//   ? import("./style/admin/css/admin.css")
-//   : import("./style/scss/main.scss");
-// }, [location])
-
-
-  
-
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
       <Provider store={store}>
-        <BrowserRouter basename={base_path}>
+        <BrowserRouter >
           <AllRoutes />
         </BrowserRouter>
       </Provider>

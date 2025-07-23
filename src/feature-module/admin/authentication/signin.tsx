@@ -45,7 +45,7 @@ const AdminSignin = () => {
                     <label>Password</label>
                     <Link
                       className="forgetpassword-link"
-                      to="/admin/forget-password"
+                      to="/forget-password"
                     >
                       Forgot password?
                     </Link>
@@ -80,14 +80,14 @@ const AdminSignin = () => {
                 </div>
               </div>
               <div className="login-button">
-                <Link to="/admin/index" className="btn btn-login">
+                <Link to="/index" className="btn btn-login">
                   Login
                 </Link>
               </div>
               <div className="signinform text-center">
                 <h4>
                   Don&apos;t have an account?{' '}
-                  <Link to="/admin/signup" className="hover-a">
+                  <Link to="/signup" className="hover-a">
                     Sign Up
                   </Link>
                 </h4>

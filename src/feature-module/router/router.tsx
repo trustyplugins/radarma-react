@@ -1,25 +1,13 @@
 import React from 'react';
-import { authRoutes, publicRoutes } from './router.link';
-import { Route, Routes } from 'react-router-dom';
-import AuthFeature from '../authFeature';
-import Feature from '../feature';
+import { Routes, Route } from 'react-router-dom';
+import Admin from '../admin/admin'; // 👈 this is your master wrapper
 
 const AllRoutes = () => {
   return (
-    <>
-      <Routes>
-        <Route element={<Feature />}>
-          {publicRoutes.map((route, idx) => (
-            <Route path={route.path} element={route.element} key={idx} />
-          ))}
-        </Route>
-        <Route element={<AuthFeature />}>
-          {authRoutes.map((route, idx) => (
-            <Route path={route.path} element={route.element} key={idx} />
-          ))}
-        </Route>
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/*" element={<Admin />} />
+    </Routes>
   );
 };
+
 export default AllRoutes;
