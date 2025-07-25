@@ -543,7 +543,7 @@ export const adminSidebar = [
         menuValue: 'Logout',
         hasSubRoute: false,
         showSubRoute: false,
-        route: routes.signin,
+        route: routes.logout,
         icon: <Icon.LogOut className="react-feather-icon" />,
       },
     ],

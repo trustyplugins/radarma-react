@@ -253,6 +253,7 @@ export const all_routes = {
   refundRequest:'/finance-accounts/refund-request',
   cacheSystem:'/management/cachesystem',
   signin:'/signin',
+  logout:'/logout',
   userCustomers:'/users/customers',
   categoriesList:'/categories/categories-list',
   addPages:'/pages/add-page',

@@ -257,12 +257,14 @@ const AdminRoutes = () => {
       name: 'customers',
       element: <Customers />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/users',
       name: 'users',
       element: <Users />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/membership',
@@ -403,6 +405,7 @@ const AdminRoutes = () => {
       name: 'localization',
       element: <Localization />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/blog/inactive-blog',
@@ -415,6 +418,7 @@ const AdminRoutes = () => {
       name: 'inactive-services',
       element: <InactiveServices />,
       route: Route,
+      role:['A1','A2'] 
     },
     {
       path: '/booking/inprogress-booking',
@@ -427,6 +431,7 @@ const AdminRoutes = () => {
       name: 'pending-services',
       element: <PendingServices />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/management/sms-template',
@@ -445,6 +450,7 @@ const AdminRoutes = () => {
       name: 'categories',
       element: <CategoriesList />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/reports/provider-earnings',
@@ -487,18 +493,21 @@ const AdminRoutes = () => {
       name: 'all-services',
       element: <AllService />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/services/active-services',
       name: 'active-services',
       element: <ActiveServices />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/services/add-service',
       name: 'add-services',
       element: <AddService />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/wallet-history',
@@ -511,6 +520,7 @@ const AdminRoutes = () => {
       name: 'deleted-services',
       element: <DeletedServices />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/edit-blog',
@@ -542,6 +552,7 @@ const AdminRoutes = () => {
       name: 'Roles',
       element: <Roles />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/permissions',
@@ -572,6 +583,7 @@ const AdminRoutes = () => {
       name: 'SubcategoriesList',
       element: <SubCategoriesList />,
       route: Route,
+      role:['A1','A2']
     },
     {
       path: '/content/testimonials',
@@ -621,11 +633,12 @@ const AdminRoutes = () => {
       element: <SuccessTransferlist />,
       route: Route,
     },
-     {
+    {
       path: '/logout',
       name: 'logout',
       element: <Logout />,
       route: Route,
+      role:['A1','A2']
     },
     // {
     //   path: '/signin',
@@ -699,6 +712,7 @@ const AdminRoutes = () => {
       name: 'service-settings',
       element: <ServiceSettings />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/setting/site-information',
@@ -742,12 +756,14 @@ const AdminRoutes = () => {
       name: 'dashboard',
       element: <Dashboard />,
       route: Route,
+
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       element: <Dashboard />,
       route: Route,
+      role: ['A1']
     },
     {
       path: '/finance-accounts/refund-request',
@@ -931,25 +947,30 @@ const AdminRoutes = () => {
       route: Route,
     },
   ];
-
+  const sessionData = localStorage.getItem('logged_user');
+  const loggedUser = sessionData ? JSON.parse(sessionData) : null;
+  const userRole = loggedUser?.profile.role;
+  
   return (
     <>
       <Routes>
-    {/* Protected Routes Wrapper */}
-    <Route element={<ProtectedRoute />}>
-      {all_admin_routes.map((route, idx) => (
-        <Route path={route.path} element={route.element} key={idx} />
-      ))}
-      {settingssidebarmodule.map((route, idx) => (
-        <Route path={route.path} element={route.element} key={idx} />
-      ))}
-    </Route>
+        {/* Admin (A1) only */}
+        <Route element={<ProtectedRoute />}>
+          {all_admin_routes.map((route, idx) => {
+            if (route.role?.includes(userRole)) {
+              return <Route path={route.path} element={route.element} key={`a1-${idx}`} />;
+            }
+            return null;
+          })}
+        </Route>
 
-    {/* Public Auth Routes */}
-    <Route path="/signin" element={<AdminSignin />} />
-    <Route path="/signup" element={<AdminSignup />} />
-    <Route path="/forget-password" element={<ForgetPassword />} />
-  </Routes>
+
+        {/* Public Auth Routes */}
+        <Route path="/signin" element={<AdminSignin />} />
+        <Route path="/signup" element={<AdminSignup />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+      </Routes>
+
     </>
   );
 };

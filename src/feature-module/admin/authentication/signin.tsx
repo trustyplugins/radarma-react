@@ -43,42 +43,59 @@ const AdminSignin = () => {
   };
   const handleVerifyOtp = async () => {
     setErrorMsg('');
-
+  
     if (!otp) {
       setErrorMsg('Please enter the OTP sent to your phone.');
       return;
     }
-
+  
     // try {
     //   const { data, error } = await supabase.auth.verifyOtp({
     //     phone: fullPhone,
     //     token: otp,
     //     type: 'sms',
     //   });
-
+  
     //   if (error || !data?.session) {
     //     throw error || new Error('Session not established');
     //   }
-    //   console.log(data.session);
-    // // const mockUserSession = {
-    // //   phone,
-    // //   loginAt: Date.now(),
-    // //   isAuthenticated: true,
-    // // };
-    //   // Save session to localStorage
-    //   localStorage.setItem('logged_user', JSON.stringify(data.session));
-    //   navigate('/admin/dashboard');
+  
+    //  const session = data.session;
+    //  const userId = session.user.id;
+  
+     const session = {
+       phone,
+       loginAt: Date.now(),
+     };
+
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('rd_users')
+        .select('*')
+        .eq('mobile', phone)
+        .single();
+  
+      if (profileError) {
+        console.error('Failed to fetch profile:', profileError.message);
+        throw profileError;
+      }
+  
+      // Store both session and profile in localStorage
+      const loggedUser = {
+        session,
+        profile,
+      };
+      localStorage.setItem('logged_user', JSON.stringify(loggedUser));
+  
+      // Redirect to dashboard
+      navigate('/dashboard');
     // } catch (err: any) {
     //   setErrorMsg('Invalid OTP: ' + err.message);
     // }
-const mockUserSession = {
-       phone,
-       loginAt: Date.now(),
-       isAuthenticated: true,
-     };
-     localStorage.setItem('logged_user', JSON.stringify(mockUserSession));
-     navigate('/dashboard');
+
+   
   };
+  
 
   return (
     <div className="login-pages">

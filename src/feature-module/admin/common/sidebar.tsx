@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 import * as Icon from 'react-feather';
@@ -10,6 +10,7 @@ import {
 import { all_routes } from '../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import { adminSidebar } from '../../../core/data/json/admin_sidebar_data';
+import { adminSidebar2 } from '../../../core/data/json/admin_sidebar_data_A2';
 import { AppState, SideBarData } from '../../../core/models/interface';
 
 const AdminSidebar = () => {
@@ -17,8 +18,17 @@ const AdminSidebar = () => {
   const toggle_data = useSelector((state: AppState) => state.mouseOverSidebar);
   const toggle_data2 = useSelector((state: AppState) => state.toggleSidebar2);
   const dispatch = useDispatch();
-
-  const [sidebarData, setSidebarData] = useState(adminSidebar);
+  const sessionData = localStorage.getItem('logged_user');
+  const loggedUser = sessionData ? JSON.parse(sessionData) : null;
+  const userRole = loggedUser.profile.role;
+  const [sidebarData, setSidebarData] = useState([]);
+  useEffect(() => {
+    if (userRole === 'A1') {
+      setSidebarData(adminSidebar);
+    } else {
+      setSidebarData(adminSidebar2);
+    }
+  }, [userRole]);
   const toggle = () => {
     dispatch(set_toggleSidebar_data_2(toggle_data2 ? false : true));
   };

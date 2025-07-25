@@ -1,24 +1,27 @@
 // src/components/admin/auth/ProtectedRoute.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+  allowedRoles?: string[]; // Example: ['A1']
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const sessionData = localStorage.getItem('logged_user');
+  const loggedUser = sessionData ? JSON.parse(sessionData) : null;
 
-  useEffect(() => {
-    const session = localStorage.getItem('logged_user');
-    const isAuth = session && JSON.parse(session)?.isAuthenticated;
-    setIsAuthenticated(!!isAuth);
-  }, []);
+  if (!loggedUser?.session || !loggedUser?.profile) {
+    return <Navigate to="/signin" replace state={{ from: location }} />;
+  }
 
-  if (isAuthenticated === null) return null; // or loader
+  const userRole = loggedUser.profile.role;
 
-  return isAuthenticated ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/signin" replace state={{ from: location }} />
-  );
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
