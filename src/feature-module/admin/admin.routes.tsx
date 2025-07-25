@@ -86,6 +86,7 @@ import Providers from './users/providers';
 import ProviderSales from './reports/provider-sales';
 import ProviderSettings from './setting/provider-settings';
 import ProviderWallet from './reports/provider-wallet';
+import Logout from './authentication/logout';
 import AdminSignin from './authentication/signin';
 import AdminSignup from './authentication/signup';
 import ForgetPassword from './authentication/forget-password';
@@ -127,7 +128,7 @@ import PluginManager from './management/plugin-manager';
 import DeleteAccountrequests from './user-management/deleteAccountrequests';
 import AddService from './services/add-service';
 import EditService from './services/edit-service';
-
+import ProtectedRoute from './ProtectedRoute';
 const AdminRoutes = () => {
   const all_admin_routes = [
     {
@@ -620,12 +621,18 @@ const AdminRoutes = () => {
       element: <SuccessTransferlist />,
       route: Route,
     },
-    {
-      path: '/signin',
-      name: 'signin',
-      element: <AdminSignin />,
+     {
+      path: '/logout',
+      name: 'logout',
+      element: <Logout />,
       route: Route,
     },
+    // {
+    //   path: '/signin',
+    //   name: 'signin',
+    //   element: <AdminSignin />,
+    //   route: Route,
+    // },
     {
       path: '/management/website-settings',
       name: 'website-settings',
@@ -928,17 +935,21 @@ const AdminRoutes = () => {
   return (
     <>
       <Routes>
-        <Route>
-          {all_admin_routes.map((route, idx) => (
-            <Route path={route.path} element={route.element} key={idx} />
-          ))}
-          {settingssidebarmodule.map((route, idx) => (
-            <Route path={route.path} element={route.element} key={idx} />
-          ))}
+    {/* Protected Routes Wrapper */}
+    <Route element={<ProtectedRoute />}>
+      {all_admin_routes.map((route, idx) => (
+        <Route path={route.path} element={route.element} key={idx} />
+      ))}
+      {settingssidebarmodule.map((route, idx) => (
+        <Route path={route.path} element={route.element} key={idx} />
+      ))}
+    </Route>
 
-          {/* <Route path="/device-management" element={DeviceManagement} /> */}
-        </Route>
-      </Routes>
+    {/* Public Auth Routes */}
+    <Route path="/signin" element={<AdminSignin />} />
+    <Route path="/signup" element={<AdminSignup />} />
+    <Route path="/forget-password" element={<ForgetPassword />} />
+  </Routes>
     </>
   );
 };

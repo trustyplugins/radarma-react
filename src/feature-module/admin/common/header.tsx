@@ -389,7 +389,7 @@ const AdminHeader = () => {
                   </ul>
                 </div>
                 <div className="subscription-logout">
-                  <Link to="signin">Log Out</Link>
+                  <Link to="logout">Log Out</Link>
                 </div>
               </div>
             </div>

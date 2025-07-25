@@ -6,8 +6,11 @@ import { useLocation } from 'react-router-dom';
 import PageLoader from '../../core/loader';
 import { useDispatch, useSelector } from 'react-redux';
 import '../../style/admin/css/admin.css';
+import { set_toggleSidebar_data} from '../../core/data/redux/action';
+import {AppState,ProviderEarningsadmindatas} from '../../core/models/interface';
 const Admin = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const toggle_data = useSelector(
     (state: ProviderEarningsadmindatas) => state.ProviderEarningsAdmin,
@@ -51,7 +54,13 @@ const Admin = () => {
                 </>
               )}
               <AdminRoutes />
-            </div></div>
+            </div>
+            <div
+        className={`sidebar-overlay header-overlay ${mobileMenu ? 'opened' : ''} ${toggle_data ? 'opened' : ''} ${
+          mobileSidebar ? 'opened' : ''
+        }`}
+        onClick={()=>dispatch(set_toggleSidebar_data(false))}
+      ></div></div>
         </>
       )}
     </>
