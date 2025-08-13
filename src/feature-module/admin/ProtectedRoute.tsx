@@ -1,27 +1,19 @@
-// src/components/admin/auth/ProtectedRoute.tsx
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
+import PageLoader from '../../core/loader';
 
-interface ProtectedRouteProps {
-  allowedRoles?: string[]; // Example: ['A1']
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, loading } = useUser();
   const location = useLocation();
-  const sessionData = localStorage.getItem('logged_user');
-  const loggedUser = sessionData ? JSON.parse(sessionData) : null;
 
-  if (!loggedUser?.session || !loggedUser?.profile) {
+  if (loading) return <PageLoader />;
+
+  if (!profile) {
     return <Navigate to="/signin" replace state={{ from: location }} />;
   }
 
-  const userRole = loggedUser.profile.role;
-
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

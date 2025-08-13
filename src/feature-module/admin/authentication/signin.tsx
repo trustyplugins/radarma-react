@@ -1,46 +1,44 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
-import supabase from '../../../supabaseClient'; // adjust path
+import supabase from '../../../supabaseClient';
+import { useUser } from '../../../context/UserContext';
 
 const AdminSignin = () => {
-  console.log("cool");
-  const [isToggle, setIsToggle] = useState(false);
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('9478632129');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE');
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
+  const { setProfile } = useUser();
   const fullPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+
+  // Auto redirect if session already exists
   useEffect(() => {
-    const isLoggedIn = !!localStorage.getItem('logged_user');
-    if (isLoggedIn) {
-      navigate('/dashboard');
-    }
-  }, []);
+    console.log("ok");
+    (async () => {
+      console.log("test");
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log(session);
+      if (session) navigate('/dashboard');
+    })();
+  }, [navigate]);
+
   const handleSendOtp = async () => {
     setErrorMsg('');
-
     if (!phone) {
       setErrorMsg('Phone number is required.');
       return;
     }
-
-    // try {
-    //   const { error } = await supabase.auth.signInWithOtp({
-    //     phone: fullPhone,
-    //   });
-
-    //   if (error) {
-    //     throw error;
-    //   }
-
-    //   setStep('OTP');
-    // } catch (err: any) {
-    //   setErrorMsg('Failed to send OTP: ' + err.message);
-    // }
-    setStep('OTP');
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
+      if (error) throw error;
+      setStep('OTP');
+    } catch (err: any) {
+      setErrorMsg('Failed to send OTP: ' + err.message);
+    }
   };
+
   const handleVerifyOtp = async () => {
     setErrorMsg('');
   
@@ -49,51 +47,32 @@ const AdminSignin = () => {
       return;
     }
   
-    // try {
-    //   const { data, error } = await supabase.auth.verifyOtp({
-    //     phone: fullPhone,
-    //     token: otp,
-    //     type: 'sms',
-    //   });
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: fullPhone, // "+91..." if user typed 10 digits
+        token: otp,
+        type: 'sms',
+      });
+      if (error || !data?.session) {
+        throw error || new Error('Session not established');
+      }
+      const session = data.session;
+      // Normalize to your DB format (no +91)
+      const dbMobile = (session.user.phone || fullPhone).replace(/^\+?91/, '');
   
-    //   if (error || !data?.session) {
-    //     throw error || new Error('Session not established');
-    //   }
-  
-    //  const session = data.session;
-    //  const userId = session.user.id;
-  
-     const session = {
-       phone,
-       loginAt: Date.now(),
-     };
-
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
+      // ——— Fetch by mobile ———
+      // If your DB guarantees mobile is unique, this is fine:
+      const { data: profile, error: getErr } = await supabase
         .from('rd_users')
         .select('*')
-        .eq('mobile', phone)
+        .eq('mobile', dbMobile)
         .single();
-  
-      if (profileError) {
-        console.error('Failed to fetch profile:', profileError.message);
-        throw profileError;
-      }
-  
-      // Store both session and profile in localStorage
-      const loggedUser = {
-        session,
-        profile,
-      };
-      localStorage.setItem('logged_user', JSON.stringify(loggedUser));
-  
-      // Redirect to dashboard
+      // Put into context BEFORE navigating
+      setProfile(profile);
       navigate('/dashboard');
-    // } catch (err: any) {
-    //   setErrorMsg('Invalid OTP: ' + err.message);
-    // }
-
-   
+    } catch (err: any) {
+      setErrorMsg('Invalid OTP: ' + (err?.message || 'Unknown error'));
+    }
   };
   
 
@@ -159,9 +138,7 @@ const AdminSignin = () => {
               <div className="signinform text-center">
                 <h4>
                   Don&apos;t have an account?{' '}
-                  <Link to="/signup" className="hover-a">
-                    Sign Up
-                  </Link>
+                  <Link to="/signup" className="hover-a">Sign Up</Link>
                 </h4>
               </div>
             </div>

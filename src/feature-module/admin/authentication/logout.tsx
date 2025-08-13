@@ -1,17 +1,30 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import supabase from '../../../supabaseClient';
+import { useUser } from '../../../context/UserContext';
 
 const Logout = () => {
   const navigate = useNavigate();
+  const { setProfile } = useUser(); // clear profile in context
 
   useEffect(() => {
-    // Clear local/session storage or Supabase session, etc.
-    localStorage.removeItem('logged_user');
-    // sessionStorage.removeItem('logged_user'); // if using sessionStorage instead
+    const doLogout = async () => {
+      try {
+        // End Supabase session
+        await supabase.auth.signOut();
 
-    // Redirect to signin
-    navigate('/signin');
-  }, [navigate]);
+        // Clear in-memory profile
+        setProfile(null);
+
+        // Redirect to signin
+        navigate('/signin', { replace: true });
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+    };
+
+    doLogout();
+  }, [navigate, setProfile]);
 
   return null; // Or a spinner/loading indicator
 };

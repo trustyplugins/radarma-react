@@ -14,6 +14,7 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
+    "@react-google-maps/api": "^2.20.7",
     "@reduxjs/toolkit": "^1.9.7",
     "@supabase/supabase-js": "^2.52.0",
     "@testing-library/jest-dom": "^5.17.0",
@@ -105,6 +106,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^3.0.3"
   }
 }

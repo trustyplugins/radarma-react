@@ -1,56 +1,69 @@
 import { Dropdown } from 'primereact/dropdown';
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import DefaultEditor from 'react-simple-wysiwyg';
 import * as Icon from 'react-feather';
 
-type props = {
-  nextTab: CallableFunction;
+type AdditionalRow = {
+  id: number;
+  additionalService: string;
+  price: number;
+  duration: string;
 };
-const ServiceInformation: React.FC<props> = ({ nextTab }) => {
-  const [selectedValue, setSelectedValue] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedSub, setSelectedSub] = useState(null);
 
-  const [services, setServices] = useState([
-    {
-      id: 1,
-      additionalService: '',
-      price: 0,
-      duration: '',
-    },
-  ]);
+export type ServiceInformationValue = {
+  title: string;
+  masterCategory: { name: string } | null;
+  category: { name: string } | null;
+  subCategory: { name: string } | null;
+  description: string;           // HTML from WYSIWYG
+  additionalEnabled: boolean;
+  additional: AdditionalRow[];   // rows
+  videoUrl?: string;
+};
 
+type Props = {
+  value: ServiceInformationValue;
+  onChange: (patch: Partial<ServiceInformationValue>) => void;
+  nextTab: () => void;
+};
+
+const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
+  // sample options — replace with real data
+  const masterOptions = [{ name: 'Johnny' }, { name: 'James' }];
+  const categoryOptions = [{ name: 'Car Wash' }, { name: 'House Cleaning' }];
+  const subCategoryOptions = [{ name: 'Car Repair' }, { name: 'Plumbing' }];
+
+  // --- additional rows handlers ---
   const addNewServiceRow = () => {
-    const newId = services.length + 1;
-    setServices([
-      ...services,
+    const newId = (value.additional?.length || 0) + 1;
+    const next = [
+      ...(value.additional || []),
       { id: newId, additionalService: '', price: 0, duration: '' },
-    ]);
+    ];
+    onChange({ additional: next });
   };
 
-  const deleteServiceRow = (id :any) => {
-    const updatedServices = services.filter((service) => service.id !== id);
-    setServices(updatedServices);
+  const deleteServiceRow = (id: number) => {
+    const next = (value.additional || []).filter((r) => r.id !== id);
+    onChange({ additional: next });
   };
 
-  const handleInputChange = (id: any, event: any) => {
-    const { name, value } = event.target;
-    const updatedServices = services.map((service) =>
-      service.id === id ? { ...service, [name]: value } : service,
+  const handleRowChange = (
+    id: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value: v } = e.target;
+    const next = (value.additional || []).map((r) =>
+      r.id === id
+        ? {
+            ...r,
+            [name]: name === 'price' ? Number(v) : v,
+          }
+        : r
     );
-    setServices(updatedServices);
+    onChange({ additional: next });
   };
-
-  const value = [{ name: 'Johnny' }, { name: 'James' }];
-  const valueCategory = [{ name: 'Car Wash' }, { name: 'House Cleaning' }];
-  const valueSub = [{ name: 'Car Repair' }, { name: 'Plumbing' }];
-
-  const [values, setValue] = React.useState();
-
-  function onChange(e: any) {
-    setValue(e.target.value);
-  }
 
   return (
     <>
@@ -62,80 +75,70 @@ const ServiceInformation: React.FC<props> = ({ nextTab }) => {
           <div className="row">
             <div className="col-md-6">
               <div className="form-group">
-                <label>Provider</label>
-                {/* <select className="select">
-                  <option>Johnny</option>
-                  <option>James</option>
-                </select> */}
+                <label>Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={value.title}
+                  onChange={(e) => onChange({ title: e.target.value })}
+                />
+              </div>
+            </div>
 
+            <div className="col-md-6">
+              <div className="form-group">
+                <label>Master Category</label>
                 <Dropdown
-                  value={selectedValue}
-                  onChange={(e) => setSelectedValue(e.value)}
-                  options={value}
+                  value={value.masterCategory}
+                  onChange={(e) => onChange({ masterCategory: e.value })}
+                  options={masterOptions}
                   optionLabel="name"
                   placeholder=""
                   className="select w-100"
                 />
               </div>
             </div>
-            <div className="col-md-6">
-              <div className="form-group">
-                <label>Service Title</label>
-                <input type="text" className="form-control" defaultValue="" />
-              </div>
-            </div>
+
             <div className="col-md-6">
               <div className="form-group">
                 <label>Category</label>
-
                 <Dropdown
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.value)}
-                  options={valueCategory}
+                  value={value.category}
+                  onChange={(e) => onChange({ category: e.value })}
+                  options={categoryOptions}
                   optionLabel="name"
                   placeholder=""
                   className="select w-100"
                 />
               </div>
             </div>
+
             <div className="col-md-6">
               <div className="form-group">
                 <label>Sub Category</label>
-
                 <Dropdown
-                  value={selectedSub}
-                  onChange={(e) => setSelectedSub(e.value)}
-                  options={valueSub}
+                  value={value.subCategory}
+                  onChange={(e) => onChange({ subCategory: e.value })}
+                  options={subCategoryOptions}
                   optionLabel="name"
                   placeholder=""
                   className="select w-100"
                 />
               </div>
             </div>
-            <div className="col-md-6">
-              <div className="form-group price">
-                <label>
-                  Price <span>Set 0 for free</span>
-                </label>
-                <input type="text" className="form-control" defaultValue="" />
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="form-group">
-                <label>Duration</label>
-                <div className="form-duration">
-                  <input type="text" className="form-control" defaultValue="" />
-                </div>
-              </div>
-            </div>
+
             <div className="col-md-12">
               <div className="form-group service-editor">
                 <label>Description</label>
-                <DefaultEditor value={values} onChange={onChange} />
+                <DefaultEditor
+                  value={value.description}
+                  onChange={(e: any) => onChange({ description: e.target.value })}
+                />
               </div>
             </div>
           </div>
         </div>
+
         <div className="container-service">
           <div className="row">
             <div className="col-sm-12">
@@ -148,7 +151,8 @@ const ServiceInformation: React.FC<props> = ({ nextTab }) => {
                     type="checkbox"
                     id="status_1"
                     className="check"
-                    defaultChecked
+                    checked={value.additionalEnabled}
+                    onChange={(e) => onChange({ additionalEnabled: e.target.checked })}
                   />
                   <label htmlFor="status_1" className="checktoggle">
                     checkbox
@@ -157,108 +161,76 @@ const ServiceInformation: React.FC<props> = ({ nextTab }) => {
               </div>
             </div>
           </div>
-          {/* <div className="addservice-info">
-            <div className="row service-cont">
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>Additional Service</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    defaultValue="Car Repair"
-                  />
+
+          {value.additionalEnabled && (
+            <div className="addservice-info">
+              {(value.additional || []).map((row) => (
+                <div key={row.id} className="row service-cont">
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>Additional Service</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="additionalService"
+                        value={row.additionalService}
+                        onChange={(e) => handleRowChange(row.id, e)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>Price</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="price"
+                        value={row.price}
+                        onChange={(e) => handleRowChange(row.id, e)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-3">
+                    <div className="form-group">
+                      <label>
+                        Duration <span>Include tax</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="duration"
+                        value={row.duration}
+                        onChange={(e) => handleRowChange(row.id, e)}
+                      />
+                    </div>
+                  </div>
+
+                  {row.id > 1 && (
+                    <div className="col-md-1">
+                      <button
+                        onClick={() => deleteServiceRow(row.id)}
+                        className="btn btn-danger-outline delete-icon"
+                        type="button"
+                      >
+                        <Icon.Trash2 className="react-feather-custom trashicon" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>Price</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter Price"
-                    defaultValue={500}
-                  />
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="form-group tax">
-                  <label>
-                    Duration <span>Include tax</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    defaultValue="30 mins"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
-          </div> */}
+          )}
 
-          <div className="addservice-info">
-            {services.map((service) => (
-              <div key={service.id} className="row service-cont">
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Additional Service</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="additionalService"
-                      value={service.additionalService}
-                      onChange={(event) => handleInputChange(service.id, event)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="price"
-                      value={service.price}
-                      onChange={(event) => handleInputChange(service.id, event)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label>
-                      Duration <span>Include tax</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="duration"
-                      value={service.duration}
-                      onChange={(event) => handleInputChange(service.id, event)}
-                    />
-                  </div>
-                </div>
-                {service.id > 1 && ( // Only render delete button for newly added rows
-                  <div className="col-md-1">
-                    <button
-                      onClick={() => deleteServiceRow(service.id)}
-                      className="btn btn-danger-outline delete-icon"
-                    >
-                      <Icon.Trash2 className="react-feather-custom trashicon" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <Link
-            to="#"
-            className="link-sets add-extra"
-            onClick={addNewServiceRow}
-          >
-            <i className="fa fa-plus-circle me-2" aria-hidden="true" />
-            Add Additional Service
-          </Link>
+          {value.additionalEnabled && (
+            <Link to="#" className="link-sets add-extra" onClick={addNewServiceRow}>
+              <i className="fa fa-plus-circle me-2" aria-hidden="true" />
+              Add Additional Service
+            </Link>
+          )}
         </div>
+
         <div className="container-service space-service">
           <div className="row">
             <div className="col-lg-12">
@@ -274,12 +246,15 @@ const ServiceInformation: React.FC<props> = ({ nextTab }) => {
                     type="text"
                     className="form-control"
                     placeholder="https://www.youtube.com/shorts/Lf-Z7H8bZ8o"
+                    value={value.videoUrl ?? ''}
+                    onChange={(e) => onChange({ videoUrl: e.target.value })}
                   />
                 </div>
               </div>
             </div>
           </div>
         </div>
+
         <div className="row">
           <div className="col-md-12">
             <div className="bottom-btn">
@@ -287,8 +262,6 @@ const ServiceInformation: React.FC<props> = ({ nextTab }) => {
                 <button
                   className="btn btn-primary next_btn"
                   type="button"
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-               // @ts-expect-error
                   onClick={nextTab}
                 >
                   Next <i className="fas fa-arrow-right" />

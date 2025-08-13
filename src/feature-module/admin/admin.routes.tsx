@@ -129,7 +129,9 @@ import DeleteAccountrequests from './user-management/deleteAccountrequests';
 import AddService from './services/add-service';
 import EditService from './services/edit-service';
 import ProtectedRoute from './ProtectedRoute';
-const AdminRoutes = () => {
+import { UserProvider } from '../../context/UserContext';
+//import { LogOut } from 'react-feather';
+const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
   const all_admin_routes = [
     {
       path: '/support/abuse-reports',
@@ -450,7 +452,7 @@ const AdminRoutes = () => {
       name: 'categories',
       element: <CategoriesList />,
       route: Route,
-      role:['A1','A2']
+      role:['A1']
     },
     {
       path: '/reports/provider-earnings',
@@ -571,6 +573,7 @@ const AdminRoutes = () => {
       name: 'email-settings',
       element: <AccountSettings />,
       route: Route,
+      role:['A1']
     },
     {
       path: '/finance-accounts/rejected-tranferlist',
@@ -583,7 +586,7 @@ const AdminRoutes = () => {
       name: 'SubcategoriesList',
       element: <SubCategoriesList />,
       route: Route,
-      role:['A1','A2']
+      role:['A1']
     },
     {
       path: '/content/testimonials',
@@ -633,13 +636,13 @@ const AdminRoutes = () => {
       element: <SuccessTransferlist />,
       route: Route,
     },
-    {
-      path: '/logout',
-      name: 'logout',
-      element: <Logout />,
-      route: Route,
-      role:['A1','A2']
-    },
+    // {
+    //   path: '/logout',
+    //   name: 'logout',
+    //   element: <Logout />,
+    //   route: Route,
+    //   role:['A1','A2']
+    // },
     // {
     //   path: '/signin',
     //   name: 'signin',
@@ -772,190 +775,13 @@ const AdminRoutes = () => {
     },
   ];
 
-  const settingssidebarmodule = [
-    {
-      path: '/setting/connected-apps',
-      name: 'connected-apps',
-      element: <ConnectApps />,
-      route: Route,
-    },
-    {
-      path: '/setting/ban-ip-address',
-      name: 'ban-ip-address',
-      element: <BanIpAddress />,
-    },
-    {
-      path: '/setting/currencies',
-      name: 'currencies',
-      element: <Currencies />,
-      route: Route,
-    },
-    {
-      path: '/setting/currency-settings',
-      name: 'currency-settings',
-      element: <CurrencySettings />,
-      route: Route,
-    },
-    {
-      path: '/setting/typography-settings',
-      name: 'typography-settings',
-      element: <TypographySetting />,
-      route: Route,
-    },
-    {
-      path: '/setting/database-backup',
-      name: 'database-backup',
-      element: <Databasebackup />,
-      route: Route,
-    },
-
-    {
-      path: '/setting/payment-settings',
-      name: 'payment-setting',
-      element: <PaymentSettings />,
-      route: Route,
-    },
-    {
-      path: '/setting/payment-gateways',
-      name: 'payment-gateways',
-      element: <PaymentGateway />,
-      route: Route,
-    },
-    {
-      path: '/setting/tax-rates',
-      name: 'tax-rates',
-      element: <TaxRates />,
-      route: Route,
-    },
-    {
-      path: '/setting/system-information',
-      name: 'system-information',
-      element: <SystemInformation />,
-      route: Route,
-    },
-    {
-      path: '/setting/system-backup',
-      name: 'system-backup',
-      element: <SystemBackup />,
-      route: Route,
-    },
-    {
-      path: '/setting/gdbr',
-      name: 'gdbr',
-      element: <Gdbr />,
-      route: Route,
-    },
-    {
-      path: '/setting/footer-settings',
-      name: 'footer-settings',
-      element: <FooterSettings />,
-      route: Route,
-    },
-    {
-      path: '/setting/security',
-      name: 'security',
-      element: <Security />,
-    },
-    {
-      path: '/users/providers',
-      name: 'footer-settings',
-      element: <Providers />,
-      route: Route,
-    },
-    {
-      path: '/reports/provider-sales',
-      name: 'footer-settings',
-      element: <ProviderSales />,
-      route: Route,
-    },
-    {
-      path: '/setting/provider-settings',
-      name: 'footer-settings',
-      element: <ProviderSettings />,
-      route: Route,
-    },
-    {
-      path: '/reports/provider-wallet',
-      name: 'footer-settings',
-      element: <ProviderWallet />,
-      route: Route,
-    },
-    {
-      path: '/forget-password',
-      name: 'forget-password',
-      element: <ForgetPassword />,
-      route: Route,
-    },
-    {
-      path: '/blog/add-blog',
-      name: 'add-blog',
-      element: <AddBlog />,
-      route: Route,
-    },
-    {
-      path: '/pages/add-home',
-      name: 'add-home',
-      element: <AddHome />,
-      route: Route,
-    },
-    {
-      path: '/membership/add-membership',
-      name: 'add-home',
-      element: <AddMembership />,
-      route: Route,
-    },
-    {
-      path: '/setting/preference-settings',
-      name: 'add-home',
-      element: <PreferenceSettings />,
-      route: Route,
-    },
-    {
-      path: '/reports/refund-report',
-      name: 'refund-report',
-      element: <RefundReport />,
-      route: Route,
-    },
-    {
-      path: '/user/customers',
-      name: 'customers',
-      element: <Customers />,
-      route: Route,
-    },
-    {
-      path: '/user/customers',
-      name: 'customers',
-      element: <Customers />,
-      route: Route,
-    },
-    {
-      path: '/setting/notification',
-      name: 'notification',
-      element: <Notification />,
-      route: Route,
-    },
-    {
-      path: '/setting/appearance',
-      name: 'appearance',
-      element: <Appearance />,
-      route: Route,
-    },
-    {
-      path: '/management/plugin-manager',
-      name: 'plugin-manager',
-      element: <PluginManager />,
-      route: Route,
-    },
-  ];
-  const sessionData = localStorage.getItem('logged_user');
-  const loggedUser = sessionData ? JSON.parse(sessionData) : null;
-  const userRole = loggedUser?.profile.role;
-  
+  console.log(userRole);
   return (
     <>
+   
       <Routes>
         {/* Admin (A1) only */}
-        <Route element={<ProtectedRoute />}>
+        <Route>
           {all_admin_routes.map((route, idx) => {
             if (route.role?.includes(userRole)) {
               return <Route path={route.path} element={route.element} key={`a1-${idx}`} />;
@@ -967,10 +793,12 @@ const AdminRoutes = () => {
 
         {/* Public Auth Routes */}
         <Route path="/signin" element={<AdminSignin />} />
+        <Route path="/logout" element={<Logout />} />
         <Route path="/signup" element={<AdminSignup />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
+        {/* <Route path="*" element={<Navigate to="/signin" replace />} /> */}
       </Routes>
-
+      
     </>
   );
 };
