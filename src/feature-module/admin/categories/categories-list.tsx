@@ -1,5 +1,5 @@
 import { DataTable } from 'primereact/datatable'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
 import { Column } from 'primereact/column';
 import { Link } from 'react-router-dom';
 import { Dropdown } from 'primereact/dropdown';
@@ -8,37 +8,120 @@ import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import CatogriesModal from '../common/modals/catogries-modal';
 import { useSelector } from 'react-redux';
 import DeleteCategoriesModal from '../common/modals/delete-categories-modal';
-
+import supabase from '../../../supabaseClient';
+import { useSession } from '../SessionContext';
 const CategoriesList = () => {
-
-
+    const [categories, setCategories] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const { session, profile } = useSession();
+    const [editCategory, setEditCategory] = useState<any>(null);
+    const [deleteCategory, setDeleteCategory] = useState<any>(null);
     const [selectedValue, setSelectedValue] = useState(null);
     const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
     const data = useSelector((state: any) => state.categoriesData);
+    // 🔹 Fetch Categories
+    const fetchCategories = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('categories')
+            .select(`
+            id,
+            category,
+            category_slug,
+            image_url,
+            created_at,
+            parent_id,
+            master_categories:parent_id ( category )
+          `)
+            .order('id', { ascending: true });
 
-    const renderFeaturedSwitch = () => {
-        return (
-            <div className="active-switch">
-                <label className="switch">
-                    <input type="checkbox" />
-                    <span className="sliders round"></span>
-                </label>
-            </div>
-        );
+        if (!error && data) setCategories(data);
+        setLoading(false);
     };
 
-    const actionButton = () => {
-        return (
-            <div className="table-actions d-flex">
-                <Link className="delete-table me-2" to="#" data-bs-toggle="modal" data-bs-target="#edit-category">
-                    <Icon.Edit className='react-feather-custom' />
-                </Link>
-                <Link className="delete-table border-none" to="#" data-bs-toggle="modal" data-bs-target="#delete-category">
-                    <Icon.Trash2 className='react-feather-custom' />
-                </Link>
-            </div>
-        )
-    }
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean, parentId: number | null) => {
+        const { error } = await supabase
+            .from('categories')
+            .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, parent_id: parentId, user_id: profile.id }]);
+
+        if (!error) fetchCategories();
+    };
+
+    // 🔹 Update Category
+    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean, parentId: number | null) => {
+        const { error } = await supabase
+            .from('categories')
+            .update({ category, category_slug: slug, image_url: image_url, featured: featured, parent_id: parentId })
+            .eq('id', id);
+
+        if (!error) {
+            fetchCategories();
+            setEditCategory(null);
+        }
+    };
+
+    // 🔹 Delete Category
+    const handleDeleteCategory = async (id: number) => {
+        const { error } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', id);
+
+        if (!error) {
+            fetchCategories();
+            setDeleteCategory(null);
+        }
+    };
+    const toggleFeatured = async (rowData: any) => {
+        const { error } = await supabase
+            .from('categories')
+            .update({ featured: !rowData.featured })
+            .eq('id', rowData.id);
+
+        if (!error) fetchCategories();
+    };
+
+
+
+    const renderFeaturedSwitch = (rowData: any) => (
+        <div className="active-switch">
+            <label className="switch">
+                <input
+                    type="checkbox"
+                    checked={rowData.featured}
+                    onChange={() => toggleFeatured(rowData)}
+                />
+                <span className="sliders round"></span>
+            </label>
+        </div>
+    );
+
+    const actionButton = (rowData: any) => (
+        <div className="table-actions d-flex">
+            <Link
+                className="delete-table me-2"
+                to="#"
+                onClick={() => setEditCategory(rowData)}
+                data-bs-toggle="modal"
+                data-bs-target="#add-category"
+            >
+                <Icon.Edit className="react-feather-custom" />
+            </Link>
+            <Link
+                className="delete-table border-none"
+                to="#"
+                onClick={() => setDeleteCategory(rowData)}
+                data-bs-toggle="modal"
+                data-bs-target="#delete-category"
+            >
+                <Icon.Trash2 className="react-feather-custom" />
+            </Link>
+        </div>
+    );
 
     return (
         <>
@@ -96,22 +179,53 @@ const CategoriesList = () => {
                     <div className="row">
                         <div className="col-12 ">
                             <div className="table-resposnive table-div">
-                                <DataTable value={data} showGridlines tableStyle={{ minWidth: '50rem' }}>
-                                    <Column sortable field="id" header="ID" ></Column>
-                                    <Column sortable field="category" header="Categories" ></Column>
-                                    <Column sortable field="categorySlug" header="Categories  Slug"></Column>
-                                    <Column sortable field="Date" header="Date"></Column>
-                                    <Column sortable field="featured" header="Featured" body={renderFeaturedSwitch}></Column>
-                                    <Column sortable field="Action" header="Action" body={actionButton}></Column>
-                                </DataTable>
-
+                                <table className="table datatable">
+                                    <DataTable
+                                        value={categories}
+                                        loading={loading}
+                                        showGridlines
+                                        tableStyle={{ minWidth: '50rem' }}
+                                    >
+                                        <Column sortable field="id" header="ID"></Column>
+                                        <Column
+                                            field="image_url"
+                                            header="Image"
+                                            body={(rowData) =>
+                                                rowData.image_url ? (
+                                                    <img
+                                                        src={rowData.image_url}
+                                                        alt={rowData.category}
+                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                                                    />
+                                                ) : (
+                                                    <span style={{ color: '#999' }}>No Image</span>
+                                                )
+                                            }
+                                        ></Column>
+                                        <Column
+                                            header="Parent Category"
+                                            body={(rowData) =>
+                                                rowData.master_categories?.category ? rowData.master_categories.category : <span style={{ color: '#999' }}>No Parent</span>
+                                            }
+                                        />
+                                        <Column sortable field="category" header="Categories"></Column>
+                                        <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                        {/* <Column sortable field="created_at" header="Date"></Column> */}
+                                        {/* <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column> */}
+                                        <Column header="Action" body={actionButton}></Column>
+                                    </DataTable>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <CatogriesModal />
-            <DeleteCategoriesModal/>
+            <CatogriesModal
+                categoryData={editCategory}
+                onSave={handleAddCategory}
+                onUpdate={handleUpdateCategory}
+            />
+            <DeleteCategoriesModal />
         </>
     )
 }
