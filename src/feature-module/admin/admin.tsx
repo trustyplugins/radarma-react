@@ -33,8 +33,8 @@ const Admin = () => {
       const { data: { session} } = await supabase.auth.getSession();
   console.log(session);
   if (!session) {
-    navigate("/", { replace: true });
-    return;
+    navigate("/signin", { replace: true });
+    //return;
   }
       if (session?.user?.phone) {
         const dbMobile = session.user.phone.replace(/^\+?91/, '');

@@ -67,9 +67,8 @@ const AdminSignin = () => {
         .select('*')
         .eq('mobile', dbMobile)
         .single();
-      // Put into context BEFORE navigating
-      setProfile(profile);
-      navigate('/dashboard', { replace: true });
+     
+        window.location.href = '/';
     } catch (err: any) {
       setErrorMsg('Invalid OTP: ' + (err?.message || 'Unknown error'));
     }
