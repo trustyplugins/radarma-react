@@ -55,16 +55,17 @@ const Admin = () => {
   
   }, []);
 
-  useEffect(() => {
-    setIsLoading(true);
-  }, [location.pathname]);
+  // useEffect(() => {
+  //   setIsLoading(true);
+  // }, [location.pathname]);
 
-  useEffect(() => {
-    const delay = 2000;
-    setTimeout(() => {
-      setIsLoading(false);
-    }, delay);
-  }, [location.pathname]);
+  // useEffect(() => {
+  //   const delay = 500;
+  //   setTimeout(() => {
+  //     setIsLoading(false);
+  //   }, delay);
+  // }, [location.pathname]);
+  
   useEffect(() => {
     window.location.pathname.includes("/admin")
       ? import("../../style/admin/css/admin.css")
