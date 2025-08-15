@@ -47,7 +47,7 @@ export const adminSidebar = [
         menuValue: 'Master Categories',
         hasSubRoute: false,
         showSubRoute: false,
-        route: routes.categoriesList,
+        route: routes.masterCategoriesList,
         icon: <Icon.FileText className="react-feather-icon" />,
       },
       {

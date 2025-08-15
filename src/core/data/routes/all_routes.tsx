@@ -255,6 +255,7 @@ export const all_routes = {
   signin:'/signin',
   logout:'/logout',
   userCustomers:'/users/customers',
+  masterCategoriesList:'/master-categories/categories-list',
   categoriesList:'/categories/categories-list',
   addPages:'/pages/add-page',
   EditPages:'/edit-page',

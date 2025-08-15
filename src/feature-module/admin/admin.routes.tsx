@@ -14,6 +14,7 @@ import EmailSettings from './setting/email-settings';
 import SocialAuthentication from './setting/social-authentication';
 import SocialProfile from './setting/social-profile';
 import StorageSettings from './setting/storage-settings';
+import MasterCategoriesList from './categories/master-categories';
 import CategoriesList from './categories/categories-list';
 //import Categories from '../frontend/pages/categories/categories';
 import SubCategoriesList from './categories/subcategories-list';
@@ -125,6 +126,13 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       element: <PendingServices />,
       route: Route,
       role:['A1','A2']
+    },
+    {
+      path: '/master-categories/categories-list',
+      name: 'categories',
+      element: <MasterCategoriesList />,
+      route: Route,
+      role:['A1']
     },
     {
       path: '/categories/categories-list',
