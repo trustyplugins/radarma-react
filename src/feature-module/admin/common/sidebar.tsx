@@ -66,12 +66,12 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
     <div
       className="admin-sidebar"
       id="sidebar"
-      onMouseEnter={toogle}
-      onMouseLeave={toogle}
+      //onMouseEnter={toogle}
+      //onMouseLeave={toogle}
     >
       <div className="admin-sidebar-header">
         <div className="admin-sidebar-logo">
-          <Link to="/admin/dashboard">
+          <Link to="/dashboard">
             <ImageWithBasePath
               src="assets/admin/img/logo.svg"
               className="img-fluid logo"
@@ -86,14 +86,14 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
             />
           </Link>
         </div>
-        <div className="admin-siderbar-toggle">
+        {/* <div className="admin-siderbar-toggle">
           <Link to="#" onClick={toggle}>
             <label className="switch" id="toggle_btn">
               <input type="checkbox" />
               <span className="admin-slider round" />
             </label>
           </Link>
-        </div>
+        </div> */}
       </div>
 
       <div className="admin-sidebar-inner slimscroll">

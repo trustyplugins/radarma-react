@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import supabase from '../../../supabaseClient';
-import { useUser } from '../../../context/UserContext';
 
 const AdminSignin = () => {
   const [phone, setPhone] = useState('9478632129');
@@ -10,14 +9,12 @@ const AdminSignin = () => {
   const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE');
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const { setProfile } = useUser();
   const fullPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-
   // Auto redirect if session already exists
   useEffect(() => {
-    console.log("ok");
+    //console.log("ok");
     (async () => {
-      console.log("test");
+      //console.log("test");
       const { data: { session } } = await supabase.auth.getSession();
       console.log(session);
       if (session) navigate('/dashboard');
@@ -41,39 +38,60 @@ const AdminSignin = () => {
 
   const handleVerifyOtp = async () => {
     setErrorMsg('');
-  
+
     if (!otp) {
       setErrorMsg('Please enter the OTP sent to your phone.');
       return;
     }
-  
+
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         phone: fullPhone, // "+91..." if user typed 10 digits
         token: otp,
         type: 'sms',
       });
+
       if (error || !data?.session) {
         throw error || new Error('Session not established');
       }
+
       const session = data.session;
-      // Normalize to your DB format (no +91)
-      const dbMobile = (session.user.phone || fullPhone).replace(/^\+?91/, '');
-  
-      // ——— Fetch by mobile ———
-      // If your DB guarantees mobile is unique, this is fine:
-      const { data: profile, error: getErr } = await supabase
+      const supabaseUserId = session.user.id;
+      const rawPhone = session?.user?.phone || ''; // "+911234567890"
+      const phone = rawPhone.startsWith('91') ? rawPhone.slice(2) : rawPhone;
+      // const phone = session.user.phone; // E.164 format e.g. "+91..."
+      console.log(session,phone);
+      // 🔹 Link user_id in rd_users if not already set
+      const { data: existingUser, error: fetchErr } = await supabase
         .from('rd_users')
-        .select('*')
-        .eq('mobile', dbMobile)
+        .select('id, user_id')
+        .eq('mobile', phone)
+        .limit(1)
         .single();
-     
-        window.location.href = '/';
+      console.log(existingUser);
+      if (fetchErr) {
+        console.error('Error fetching user:', fetchErr);
+      } else if (existingUser && !existingUser.user_id) {
+        console.log("inn");
+        const { error: updateErr } = await supabase
+          .from('rd_users')
+          .update({ user_id: supabaseUserId })
+          .eq('id', existingUser.id);
+
+        if (updateErr) {
+          console.error('Error updating user_id:', updateErr);
+        }
+      }
+
+      // ✅ Redirect after linking
+       window.location.href = '/';
+
     } catch (err: any) {
       setErrorMsg('Invalid OTP: ' + (err?.message || 'Unknown error'));
     }
   };
-  
+
+
 
   return (
     <div className="login-pages">

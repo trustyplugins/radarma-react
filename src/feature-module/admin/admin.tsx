@@ -10,6 +10,7 @@ import { set_toggleSidebar_data} from '../../core/data/redux/action';
 import {AppState,ProviderEarningsadmindatas} from '../../core/models/interface';
 import AdminSignin from './authentication/signin';
 import supabase from '../../supabaseClient';
+import { Session } from 'inspector/promises';
 const Admin = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,16 +23,12 @@ const Admin = () => {
   const mobileMenu = useSelector((state: AppState) => state.toggleSidebar);
   const mouse_data = useSelector((state: AppState) => state.mouseOverSidebar);
   const mobileSidebar = useSelector((state: AppState) => state.mobileSidebar);
-
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false); // ✅ new flag to avoid infinite loop
 
 
   useEffect(() => {
     const load = async () => {
-      console.log("innnn");
       const { data: { session} } = await supabase.auth.getSession();
-  console.log(session);
   if (!session) {
     navigate("/signin", { replace: true });
     //return;
@@ -43,7 +40,7 @@ const Admin = () => {
           .select('*')
           .eq('mobile', dbMobile)
           .single();
-  console.log(data);
+  //console.log(data);
         setUserRole(error ? null : data?.role || null);
       } else {
         //setProfile(null);
@@ -54,22 +51,14 @@ const Admin = () => {
     load();
   
   }, []);
-
-  // useEffect(() => {
-  //   setIsLoading(true);
-  // }, [location.pathname]);
-
-  // useEffect(() => {
-  //   const delay = 500;
-  //   setTimeout(() => {
-  //     setIsLoading(false);
-  //   }, delay);
-  // }, [location.pathname]);
   
   useEffect(() => {
-    window.location.pathname.includes("/admin")
-      ? import("../../style/admin/css/admin.css")
-      : import("../../style/scss/main.scss");
+    console.log(window.location.pathname);
+    import("../../style/scss/main.scss");
+    import("../../style/admin/css/admin.css");
+    // window.location.pathname.includes("/admin")
+    //   ? import("../../style/admin/css/admin.css")
+    //   : import("../../style/scss/main.scss");
   }, [location.pathname]);
 
 console.log(userRole);

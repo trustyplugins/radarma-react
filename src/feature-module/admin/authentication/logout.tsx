@@ -14,7 +14,7 @@ const Logout = () => {
         // Delay redirect by 1 second
         setTimeout(() => {
           window.location.href = '/signin';
-        }, 1500);
+        }, 1000);
 
       } catch (err) {
         console.error('Logout error:', err);
