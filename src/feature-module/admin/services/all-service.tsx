@@ -76,7 +76,7 @@ const AllService: React.FC = () => {
       if (role === 'A2' && userId) {
         q = q.eq('user_id', userId);
       }
-
+console.log(q);
       // Sort
       if (selectedSort.key === 'az')  q = q.order('title', { ascending: true,  nullsFirst: true });
       if (selectedSort.key === 'za')  q = q.order('title', { ascending: false, nullsLast: true });

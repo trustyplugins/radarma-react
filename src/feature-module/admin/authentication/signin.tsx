@@ -69,7 +69,7 @@ const AdminSignin = () => {
         .single();
       // Put into context BEFORE navigating
       setProfile(profile);
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setErrorMsg('Invalid OTP: ' + (err?.message || 'Unknown error'));
     }

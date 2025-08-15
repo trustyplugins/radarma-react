@@ -759,14 +759,14 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       name: 'dashboard',
       element: <Dashboard />,
       route: Route,
-
+      role: ['A1','A2']
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       element: <Dashboard />,
       route: Route,
-      role: ['A1']
+      role: ['A1','A2']
     },
     {
       path: '/finance-accounts/refund-request',

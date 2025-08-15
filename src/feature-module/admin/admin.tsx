@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminRoutes from './admin.routes';
 import AdminHeader from './common/header';
 import AdminSidebar from './common/sidebar';
-import { Navigate,useLocation } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import PageLoader from '../../core/loader';
 import { useDispatch, useSelector } from 'react-redux';
 import '../../style/admin/css/admin.css';
@@ -11,9 +11,10 @@ import {AppState,ProviderEarningsadmindatas} from '../../core/models/interface';
 import AdminSignin from './authentication/signin';
 import supabase from '../../supabaseClient';
 const Admin = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const toggle_data = useSelector(
     (state: ProviderEarningsadmindatas) => state.ProviderEarningsAdmin,
   );
@@ -28,8 +29,13 @@ const Admin = () => {
 
   useEffect(() => {
     const load = async () => {
+      console.log("innnn");
       const { data: { session} } = await supabase.auth.getSession();
   console.log(session);
+  if (!session) {
+    navigate("/", { replace: true });
+    return;
+  }
       if (session?.user?.phone) {
         const dbMobile = session.user.phone.replace(/^\+?91/, '');
         const { data, error } = await supabase
