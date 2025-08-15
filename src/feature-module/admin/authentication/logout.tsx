@@ -7,8 +7,15 @@ const Logout = () => {
       try {
         // End Supabase session
         await supabase.auth.signOut();
-        // Force full reload to signin
-        window.location.href = '/signin';
+
+        // Optional: log for debugging
+        console.log('User logged out, redirecting...');
+
+        // Delay redirect by 1 second
+        setTimeout(() => {
+          window.location.href = '/signin';
+        }, 1500);
+
       } catch (err) {
         console.error('Logout error:', err);
       }
@@ -17,7 +24,7 @@ const Logout = () => {
     doLogout();
   }, []);
 
-  return null; // Optional: spinner/loading indicator
+  return null; // Replace with a spinner if you want
 };
 
 export default Logout;
