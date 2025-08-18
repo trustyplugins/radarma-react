@@ -1,41 +1,34 @@
-import { DataTable } from 'primereact/datatable'
-import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Link } from 'react-router-dom';
 import { Dropdown } from 'primereact/dropdown';
 import * as Icon from 'react-feather';
-import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
-import CatogriesModal from '../common/modals/catogries-modal';
+import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import DeleteCategoriesModal from '../common/modals/delete-categories-modal';
+import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
+import TagsModal from '../common/modals/tags-modal';
+import DeleteMCategoriesModal from '../common/modals/delete-master-cat-modal';
 import supabase from '../../../supabaseClient';
 import { useSession } from '../SessionContext';
-const CategoriesList = () => {
+const SortingTags = () => {
+    const [selectedValue, setSelectedValue] = useState(null);
+    const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const { session, profile } = useSession();
+    //console.log(session,profile);
     const [editCategory, setEditCategory] = useState<any>(null);
     const [deleteCategory, setDeleteCategory] = useState<any>(null);
-    const [selectedValue, setSelectedValue] = useState(null);
-    const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
-    const data = useSelector((state: any) => state.categoriesData);
+
     // 🔹 Fetch Categories
     const fetchCategories = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from('sectors')
-            .select(`
-            id,
-            category,
-            category_slug,
-            image_url,
-            created_at,
-            parent_id,
-            cities:parent_id ( category )
-          `)
+            .from('tags')
+            .select('*')
             .order('id', { ascending: true });
 
-        if (!error && data) setCategories(data);
+        if (!error) setCategories(data);
         setLoading(false);
     };
 
@@ -43,19 +36,20 @@ const CategoriesList = () => {
         fetchCategories();
     }, []);
 
-    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean, parentId: number | null) => {
+    // 🔹 Add Category
+    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
         const { error } = await supabase
-            .from('sectors')
-            .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, parent_id: parentId, user_id: profile.id }]);
+            .from('tags')
+            .insert([{ category, category_slug: slug, image_url: image_url, is_link: featured, user_id: profile.id }]);
 
         if (!error) fetchCategories();
     };
 
     // 🔹 Update Category
-    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean, parentId: number | null) => {
+    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean) => {
         const { error } = await supabase
-            .from('sectors')
-            .update({ category, category_slug: slug, image_url: image_url, featured: featured, parent_id: parentId })
+            .from('tags')
+            .update({ category, category_slug: slug, image_url: image_url, is_link: featured })
             .eq('id', id);
 
         if (!error) {
@@ -67,7 +61,7 @@ const CategoriesList = () => {
     // 🔹 Delete Category
     const handleDeleteCategory = async (id: number) => {
         const { error } = await supabase
-            .from('sectors')
+            .from('tags')
             .delete()
             .eq('id', id);
 
@@ -76,23 +70,23 @@ const CategoriesList = () => {
             setDeleteCategory(null);
         }
     };
+
+    // 🔹 Toggle Featured
     const toggleFeatured = async (rowData: any) => {
         const { error } = await supabase
-            .from('sectors')
+            .from('tags')
             .update({ featured: !rowData.featured })
             .eq('id', rowData.id);
 
         if (!error) fetchCategories();
     };
 
-
-
     const renderFeaturedSwitch = (rowData: any) => (
         <div className="active-switch">
             <label className="switch">
                 <input
                     type="checkbox"
-                    checked={rowData.featured}
+                    checked={rowData.is_link}
                     onChange={() => toggleFeatured(rowData)}
                 />
                 <span className="sliders round"></span>
@@ -128,7 +122,7 @@ const CategoriesList = () => {
             <div className="page-wrapper page-settings">
                 <div className="content">
                     <div className="content-page-header content-page-headersplit mb-0">
-                        <h5>Sector/Phase</h5>
+                        <h5>Tags</h5>
                         <div className="list-btn">
                             <ul>
                                 <li>
@@ -168,68 +162,69 @@ const CategoriesList = () => {
                                         type="button"
                                         data-bs-toggle="modal"
                                         data-bs-target="#add-category"
+                                        onClick={() => setEditCategory(null)} // reset for Add
                                     >
                                         <i className="fa fa-plus me-2" />
-                                        Add Sector/Phase
+                                        Add Tag
                                     </button>
                                 </li>
                             </ul>
                         </div>
                     </div>
+
                     <div className="row">
                         <div className="col-12 ">
                             <div className="table-resposnive table-div">
-                                <table className="table datatable">
-                                    <DataTable
-                                        value={categories}
-                                        loading={loading}
-                                        showGridlines
-                                        tableStyle={{ minWidth: '50rem' }}
-                                    >
-                                        <Column sortable field="id" header="ID"></Column>
-                                        <Column
-                                            field="image_url"
-                                            header="Image"
-                                            body={(rowData) =>
-                                                rowData.image_url ? (
-                                                    <img
-                                                        src={rowData.image_url}
-                                                        alt={rowData.category}
-                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-                                                    />
-                                                ) : (
-                                                    <span style={{ color: '#999' }}>No Image</span>
-                                                )
-                                            }
-                                        ></Column>
-                                        <Column
-                                            header="City"
-                                            body={(rowData) =>
-                                                rowData.cities?.category ? rowData.cities.category : <span style={{ color: '#999' }}>No Parent</span>
-                                            }
-                                        />
-                                        <Column sortable field="category" header="Sector/Phase"></Column>
-                                        <Column sortable field="category_slug" header="Slug"></Column>
-                                        {/* <Column sortable field="created_at" header="Date"></Column> */}
-                                        {/* <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column> */}
-                                        <Column header="Action" body={actionButton}></Column>
-                                    </DataTable>
+                            <table className="table datatable">
+                                <DataTable
+                                    value={categories}
+                                    loading={loading}
+                                    showGridlines
+                                    tableStyle={{ minWidth: '50rem' }}
+                                >
+                                    <Column sortable field="id" header="ID"></Column>
+                                    <Column
+                                        field="image_url"
+                                        header="Image"
+                                        body={(rowData) =>
+                                            rowData.image_url ? (
+                                                <img
+                                                    src={rowData.image_url}
+                                                    alt={rowData.category}
+                                                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                                                />
+                                            ) : (
+                                                <span style={{ color: '#999' }}>No Image</span>
+                                            )
+                                        }
+                                    ></Column>
+                                    <Column sortable field="category" header="Categories"></Column>
+                                    <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                    {/* <Column sortable field="created_at" header="Date"></Column> */}
+                                   <Column field="is_link" header="Link" body={renderFeaturedSwitch}></Column>
+                                    <Column header="Action" body={actionButton}></Column>
+                                </DataTable>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <CatogriesModal
+
+            {/* Add / Edit Modal */}
+            <TagsModal
                 categoryData={editCategory}
                 onSave={handleAddCategory}
                 onUpdate={handleUpdateCategory}
             />
-            <DeleteCategoriesModal
-                categoryData={deleteCategory}
-                onDelete={handleDeleteCategory} />
-        </>
-    )
-}
 
-export default CategoriesList
+            {/* Delete Modal */}
+            <DeleteMCategoriesModal
+                categoryData={deleteCategory}
+                onDelete={handleDeleteCategory}
+            />
+        </>
+    );
+};
+
+export default SortingTags;

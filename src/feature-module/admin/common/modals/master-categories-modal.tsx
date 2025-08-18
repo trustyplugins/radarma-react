@@ -81,7 +81,7 @@ const MCatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) =>
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">
-                {categoryData ? 'Edit Category' : 'Add Category'}
+                {categoryData ? 'Edit City' : 'Add City'}
               </h5>
               <button
                 type="button"
@@ -94,7 +94,7 @@ const MCatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) =>
             <div className="modal-body">
               {/* Category Name */}
               <div className="mb-3">
-                <label className="form-label">Category Name</label>
+                <label className="form-label">City Name</label>
                 <input
                   type="text"
                   className="form-control"
@@ -107,20 +107,20 @@ const MCatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) =>
 
               {/* Category Slug */}
               <div className="mb-3">
-                <label className="form-label">Category Slug</label>
+                <label className="form-label">City Slug</label>
                 <input
                   type="text"
                   className="form-control"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder="Enter category slug"
+                  placeholder="Enter slug"
                   required
                 />
               </div>
 
               {/* Category Image */}
               <div className="mb-3">
-                <label className="form-label">Category Image</label>
+                <label className="form-label">Image</label>
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (

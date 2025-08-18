@@ -17,6 +17,7 @@ import StorageSettings from './setting/storage-settings';
 import MasterCategoriesList from './categories/master-categories';
 import CategoriesList from './categories/categories-list';
 //import Categories from '../frontend/pages/categories/categories';
+import MainCategoryList from './categories/maincategories-list';
 import SubCategoriesList from './categories/subcategories-list';
 import Roles from './roles-permission/roles';
 import ActiveServices from './services/active-services';
@@ -37,6 +38,8 @@ import Coupons from './marketing/coupons';
 import CreateMenu from './management/create-menu';
 import AddService from './services/add-service';
 import { SessionProvider } from './SessionContext';
+import SortingTags from './categories/sorting-tags';
+import LinkTags from './categories/link-tags';
 const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
   const all_admin_routes = [
     {
@@ -128,19 +131,47 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       role:['A1','A2']
     },
     {
-      path: '/master-categories/categories-list',
+      path: '/categories/cities',
       name: 'categories',
       element: <MasterCategoriesList />,
       route: Route,
       role:['A1']
     },
     {
-      path: '/categories/categories-list',
+      path: '/categories/sector-phase',
       name: 'categories',
       element: <CategoriesList />,
       route: Route,
       role:['A1']
     },
+    {
+      path: '/categories/main-categories',
+      name: 'categories',
+      element: <MainCategoryList />,
+      route: Route,
+      role:['A1']
+    },
+    {
+      path: '/categories/sub-categories',
+      name: 'SubcategoriesList',
+      element: <SubCategoriesList />,
+      route: Route,
+      role:['A1']
+    },
+    {
+      path: '/sorting-tags/categories-list',
+      name: 'categories',
+      element: <SortingTags />,
+      route: Route,
+      role:['A1']
+    },
+    // {
+    //   path: '/link-tags/categories-list',
+    //   name: 'categories',
+    //   element: <LinkTags />,
+    //   route: Route,
+    //   role:['A1']
+    // },
     {
       path: '/setting/social-profile',
       name: 'social-profile',
@@ -195,13 +226,7 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       route: Route,
       role:['A1']
     },
-    {
-      path: '/sub-categories',
-      name: 'SubcategoriesList',
-      element: <SubCategoriesList />,
-      route: Route,
-      role:['A1']
-    },
+    
     {
       path: '/signup',
       name: 'signup',

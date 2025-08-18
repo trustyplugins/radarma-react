@@ -8,14 +8,16 @@ import supabase from '../../../../supabaseClient';
 type AdditionalRow = { id: number; additionalService: string; price: number; duration: string };
 type Info = {
   title: string;
-  masterCategory: { name: string } | null;
-  category: { name: string } | null;
-  subCategory: { name: string } | null;
+  masterCategory: { id: number; name: string } | null;
+  category: { id: number; name: string } | null;
+  subCategory: { id: number; name: string } | null;
   description: string;
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl: string;
+  tags: { id: number; name: string }[];   // 👈 add this
 };
+
 
 type Slot = { id: number; from: string; to: string; slots: string };
 type PerDay = {
@@ -58,17 +60,18 @@ const initialForm: AddServiceForm = {
     additionalEnabled: true,
     additional: [{ id: 1, additionalService: '', price: 0, duration: '' }],
     videoUrl: '',
+    tags: [],  // 👈
   },
   availability: {
-    all: [ { ...emptySlot } ],
+    all: [{ ...emptySlot }],
     perDay: {
-      monday:    [ { ...emptySlot } ],
-      tuesday:   [ { ...emptySlot } ],
-      wednesday: [ { ...emptySlot } ],
-      thursday:  [ { ...emptySlot } ],
-      friday:    [ { ...emptySlot } ],
-      saturday:  [ { ...emptySlot } ],
-      sunday:    [ { ...emptySlot } ],
+      monday: [{ ...emptySlot }],
+      tuesday: [{ ...emptySlot }],
+      wednesday: [{ ...emptySlot }],
+      thursday: [{ ...emptySlot }],
+      friday: [{ ...emptySlot }],
+      saturday: [{ ...emptySlot }],
+      sunday: [{ ...emptySlot }],
     },
   },
   location: {},
@@ -173,20 +176,20 @@ const AddService = () => {
   const handleSave = async () => {
     setSaving(true);
     setErrorMsg(null);
-  
+
     try {
       // validations
       if (!form.info.title?.trim()) throw new Error('Title is required.');
       if (!form.seo.slug?.trim()) throw new Error('Slug is required.');
-  
+
       // Auth (recommended so RLS passes)
       const { data: { user }, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
       if (!user) throw new Error('You must be signed in to save.');
-  
+
       // upload gallery
       const galleryUrls = await uploadGalleryFiles(form.gallery.files);
-  
+
       // normalize availability: copy "all" to any empty day
       const fillAvailability = () => {
         const all = form.availability.all ?? [];
@@ -198,49 +201,49 @@ const AddService = () => {
         });
         return { all, perDay: per };
       };
-  
+
       const payload = {
         user_id: user.id,
-  
+
         // information
         title: form.info.title,
         description: form.info.description || null,
-        master_category: form.info.masterCategory?.name ?? null,
-        category: form.info.category?.name ?? null,
-        sub_category: form.info.subCategory?.name ?? null,
+        master_category: form.info.masterCategory?.id ?? null,
+        category: form.info.category?.id ?? null,
+        sub_category: form.info.subCategory?.id ?? null,
         additional_enabled: !!form.info.additionalEnabled,
         additional: form.info.additional?.length ? form.info.additional : [],
         video_url: form.info.videoUrl || null,
         price: form.info.price ?? null,
-  
+
         // availability
         availability: fillAvailability(),
-  
+
         // location
         address: form.location.address || null,
         lat: form.location.lat ?? null,
         lng: form.location.lng ?? null,
-  
+
         // gallery
         gallery_urls: galleryUrls,
-  
+
         // seo
         slug: form.seo.slug,
         meta_title: form.seo.metaTitle || null,
         meta_description: form.seo.metaDescription || null,
         meta_keywords: form.seo.metaKeywords ?? [],
-  
+
         status: 'draft',
       };
-  
+
       const { data, error } = await supabase
         .from('listings')           // 👈 new table
         .insert(payload)
         .select()
         .single();
-  
+
       if (error) throw error;
-  
+
       setForm(initialForm);
       alert('Listing saved successfully!');
       // navigate(`/listings/${data.slug}`) if you like
@@ -251,8 +254,8 @@ const AddService = () => {
       setSaving(false);
     }
   };
-  
-  
+
+
 
   console.log(form);
   return (
@@ -356,31 +359,31 @@ const AddService = () => {
 
               ) : PageChange === 'location' ? (
                 <Location
-                value={form.location} // { address?: string; lat?: number; lng?: number }
-                onChange={(patch) => setForm(p => ({ ...p, location: { ...p.location, ...patch } }))}
-                prevTab={availabilityTab}
-                nextTab={galleryTab}
-              />
-              
+                  value={form.location} // { address?: string; lat?: number; lng?: number }
+                  onChange={(patch) => setForm(p => ({ ...p, location: { ...p.location, ...patch } }))}
+                  prevTab={availabilityTab}
+                  nextTab={galleryTab}
+                />
+
               ) : PageChange === 'gallery' ? (
                 <Gallery
-                value={form.gallery}                 // { files: (File | {url:string})[] }
-                onChange={(updater) => setForm(p => ({ ...p, gallery: updater(p.gallery) }))}
-                prevTab={locationTab}
-                nextTab={seoTab}
-              />
-              
+                  value={form.gallery}                 // { files: (File | {url:string})[] }
+                  onChange={(updater) => setForm(p => ({ ...p, gallery: updater(p.gallery) }))}
+                  prevTab={locationTab}
+                  nextTab={seoTab}
+                />
+
               ) : (
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 <EditSeo
-                value={form.seo}
-                onChange={updateSeo}
-                prevTab={galleryTab}
-                onSave={handleSave}
-                saving={saving}
-              />
-              
+                  value={form.seo}
+                  onChange={updateSeo}
+                  prevTab={galleryTab}
+                  onSave={handleSave}
+                  saving={saving}
+                />
+
               )}
             </div>
           </div>

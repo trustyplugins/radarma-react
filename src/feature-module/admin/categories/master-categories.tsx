@@ -24,7 +24,7 @@ const MasterCategoriesList = () => {
     const fetchCategories = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from('master_categories')
+            .from('cities')
             .select('*')
             .order('id', { ascending: true });
 
@@ -39,7 +39,7 @@ const MasterCategoriesList = () => {
     // 🔹 Add Category
     const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('cities')
             .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, user_id: profile.id }]);
 
         if (!error) fetchCategories();
@@ -48,7 +48,7 @@ const MasterCategoriesList = () => {
     // 🔹 Update Category
     const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('cities')
             .update({ category, category_slug: slug, image_url: image_url, featured: featured })
             .eq('id', id);
 
@@ -61,7 +61,7 @@ const MasterCategoriesList = () => {
     // 🔹 Delete Category
     const handleDeleteCategory = async (id: number) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('cities')
             .delete()
             .eq('id', id);
 
@@ -74,7 +74,7 @@ const MasterCategoriesList = () => {
     // 🔹 Toggle Featured
     const toggleFeatured = async (rowData: any) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('cities')
             .update({ featured: !rowData.featured })
             .eq('id', rowData.id);
 
@@ -122,7 +122,7 @@ const MasterCategoriesList = () => {
             <div className="page-wrapper page-settings">
                 <div className="content">
                     <div className="content-page-header content-page-headersplit mb-0">
-                        <h5>Categories</h5>
+                        <h5>Cities</h5>
                         <div className="list-btn">
                             <ul>
                                 <li>
@@ -165,7 +165,7 @@ const MasterCategoriesList = () => {
                                         onClick={() => setEditCategory(null)} // reset for Add
                                     >
                                         <i className="fa fa-plus me-2" />
-                                        Add Category
+                                        Add City
                                     </button>
                                 </li>
                             </ul>
@@ -198,10 +198,10 @@ const MasterCategoriesList = () => {
                                             )
                                         }
                                     ></Column>
-                                    <Column sortable field="category" header="Categories"></Column>
-                                    <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                    <Column sortable field="category" header="City"></Column>
+                                    <Column sortable field="category_slug" header="Slug"></Column>
                                     {/* <Column sortable field="created_at" header="Date"></Column> */}
-                                    <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column>
+                                    {/* <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column> */}
                                     <Column header="Action" body={actionButton}></Column>
                                 </DataTable>
                                 </table>

@@ -1,25 +1,28 @@
+import React, { useState, useEffect } from 'react';
 import { Dropdown } from 'primereact/dropdown';
-import React from 'react';
 import { Link } from 'react-router-dom';
 import DefaultEditor from 'react-simple-wysiwyg';
 import * as Icon from 'react-feather';
-
+import supabase from '../../../../supabaseClient';
+import { MultiSelect } from 'primereact/multiselect';
 type AdditionalRow = {
   id: number;
   additionalService: string;
   price: number;
   duration: string;
 };
-
+type TagOption = { id: number; name: string };
+type Option = { id: number; name: string };
 export type ServiceInformationValue = {
   title: string;
-  masterCategory: { name: string } | null;
-  category: { name: string } | null;
-  subCategory: { name: string } | null;
-  description: string;           // HTML from WYSIWYG
+  masterCategory: Option | null;
+  category: Option[];
+  subCategory: Option[];
+  description: string;
   additionalEnabled: boolean;
-  additional: AdditionalRow[];   // rows
+  additional: AdditionalRow[];
   videoUrl?: string;
+  tags: TagOption[]
 };
 
 type Props = {
@@ -30,9 +33,76 @@ type Props = {
 
 const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   // sample options — replace with real data
-  const masterOptions = [{ name: 'Johnny' }, { name: 'James' }];
-  const categoryOptions = [{ name: 'Car Wash' }, { name: 'House Cleaning' }];
-  const subCategoryOptions = [{ name: 'Car Repair' }, { name: 'Plumbing' }];
+
+  const [masterOptions, setMasterOptions] = useState<any[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState<any[]>([]);
+  const [tags, setTags] = useState<TagOption[]>([]);
+  // fetch master categories
+  useEffect(() => {
+    const fetchMasterCategories = async () => {
+      const { data, error } = await supabase
+        .from('cities')
+        .select('id, category');
+      if (!error && data) {
+        setMasterOptions(data.map(mc => ({ id: mc.id, name: mc.category })));
+      }
+    };
+    fetchMasterCategories();
+  }, []);
+
+  // fetch categories when masterCategory changes
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!value.masterCategory) {
+        setCategoryOptions([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, category')
+        .eq('parent_id', value.masterCategory.id); // assuming parent_id links to master_categories.id
+      if (!error && data) {
+        setCategoryOptions(data.map(c => ({ id: c.id, name: c.category })));
+      }
+    };
+    fetchCategories();
+  }, [value.masterCategory]);
+
+  // fetch subcategories when category changes
+ // fetch subcategories when category changes
+useEffect(() => {
+  const fetchSubCategories = async () => {
+    if (!value.category || value.category.length === 0) {
+      setSubCategoryOptions([]);
+      return;
+    }
+
+    // Collect selected category IDs
+    const categoryIds = value.category.map(c => c.id);
+
+    const { data, error } = await supabase
+      .from('sub_categories')
+      .select('id, category, parent_id')
+      .in('parent_id', categoryIds); // fetch subcategories for multiple categories
+
+    if (!error && data) {
+      setSubCategoryOptions(data.map(sc => ({ id: sc.id, name: sc.category })));
+    }
+  };
+  fetchSubCategories();
+}, [value.category]);
+  useEffect(() => {
+    const fetchTags = async () => {
+      const { data, error } = await supabase
+        .from('tags')
+        .select('id, category'); // adjust column names if different
+      if (!error && data) {
+        setTags(data.map((t) => ({ id: t.id, name: t.category })));
+      }
+    };
+    fetchTags();
+  }, []);
 
   // --- additional rows handlers ---
   const addNewServiceRow = () => {
@@ -57,9 +127,9 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     const next = (value.additional || []).map((r) =>
       r.id === id
         ? {
-            ...r,
-            [name]: name === 'price' ? Number(v) : v,
-          }
+          ...r,
+          [name]: name === 'price' ? Number(v) : v,
+        }
         : r
     );
     onChange({ additional: next });
@@ -90,10 +160,16 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 <label>Master Category</label>
                 <Dropdown
                   value={value.masterCategory}
-                  onChange={(e) => onChange({ masterCategory: e.value })}
+                  onChange={(e) =>
+                    onChange({
+                      masterCategory: e.value,
+                      category: null,
+                      subCategory: null,
+                    })
+                  }
                   options={masterOptions}
                   optionLabel="name"
-                  placeholder=""
+                  placeholder="Select Master Category"
                   className="select w-100"
                 />
               </div>
@@ -101,32 +177,57 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
             <div className="col-md-6">
               <div className="form-group">
-                <label>Category</label>
-                <Dropdown
+                <label>Categories</label>
+                <MultiSelect
                   value={value.category}
-                  onChange={(e) => onChange({ category: e.value })}
                   options={categoryOptions}
+                  onChange={(e) =>
+                    onChange({
+                      category: e.value,
+                      subCategory: []  // reset subcategories if categories change
+                    })
+                  }
                   optionLabel="name"
-                  placeholder=""
-                  className="select w-100"
+                  placeholder="Select categories"
+                  display="chip"
+                  filter
+                  className="w-100"
+                  disabled={!value.masterCategory}
                 />
               </div>
             </div>
 
             <div className="col-md-6">
               <div className="form-group">
-                <label>Sub Category</label>
-                <Dropdown
+                <label>Sub Categories</label>
+                <MultiSelect
                   value={value.subCategory}
-                  onChange={(e) => onChange({ subCategory: e.value })}
                   options={subCategoryOptions}
+                  onChange={(e) => onChange({ subCategory: e.value })}
                   optionLabel="name"
-                  placeholder=""
-                  className="select w-100"
+                  placeholder="Select sub categories"
+                  display="chip"
+                  filter
+                  className="w-100"
+                  disabled={!value.category?.length}
                 />
               </div>
             </div>
-
+            <div className="col-md-12">
+              <div className="form-group">
+                <label>Tags</label>
+                <MultiSelect
+                  value={value.tags}
+                  options={tags}
+                  onChange={(e) => onChange({ tags: e.value })}
+                  optionLabel="name"
+                  placeholder="Select tags"
+                  display="chip"   // shows selected tags as chips
+                  filter          // enables search inside dropdown
+                  className="w-100"
+                />
+              </div>
+            </div>
             <div className="col-md-12">
               <div className="form-group service-editor">
                 <label>Description</label>

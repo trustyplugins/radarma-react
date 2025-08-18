@@ -1,7 +1,7 @@
 import React from 'react'
 import * as Icon from 'react-feather';
 
-const DeleteMainCategoriesModal: React.FC<Props> = ({ categoryData, onDelete }) => {
+const DeleteCategoriesModal: React.FC<Props> = ({ categoryData, onDelete }) => {
     const handleConfirmDelete = () => {
         if (categoryData?.id) {
             onDelete(categoryData.id);
@@ -50,4 +50,4 @@ const DeleteMainCategoriesModal: React.FC<Props> = ({ categoryData, onDelete }) 
     );
 }
 
-export default DeleteMainCategoriesModal
+export default DeleteCategoriesModal

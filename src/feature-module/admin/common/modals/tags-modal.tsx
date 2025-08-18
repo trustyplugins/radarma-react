@@ -5,48 +5,29 @@ import supabase from '../../../../supabaseClient'; // adjust path
 
 interface Props {
   categoryData?: any; // null for Add, object for Edit
-  onSave: (category: string, slug: string, imageUrl: string,featured: boolean,parentId: number | null) => void;
-  onUpdate: (id: number, category: string, slug: string, imageUrl: string ,featured: boolean,parentId: number | null) => void;
+  onSave: (category: string, slug: string, imageUrl: string,featured: boolean) => void;
+  onUpdate: (id: number, category: string, slug: string, imageUrl: string ,featured: boolean) => void;
 }
 
-const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
+const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
   const [category, setCategory] = useState('');
   const [slug, setSlug] = useState('');
   const [featured, setFeatured] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
-  const [parentCategories, setParentCategories] = useState<any[]>([]);
-  const [parentId, setParentId] = useState<number | null>(null);
-  // Fetch master categories for dropdown
-  const fetchParentCategories = async () => {
-    const { data, error } = await supabase
-      .from('cities')
-      .select('id, category')
-      .order('category', { ascending: true });
-    if (!error && data) {
-      setParentCategories(data);
-    }
-  };
-
-  useEffect(() => {
-    fetchParentCategories();
-  }, []);
-
 
   useEffect(() => {
     if (categoryData) {
       setCategory(categoryData.category || '');
       setSlug(categoryData.category_slug || '');
       setPreviewUrl(categoryData.image_url || ''); // existing image if editing
-      setFeatured(!!categoryData.featured);
-      setParentId(categoryData.parent_id || null);
+      setFeatured(!!categoryData.is_link);
     } else {
       setCategory('');
       setSlug('');
       setImageFile(null);
       setPreviewUrl('');
       setFeatured(false);
-      setParentId(null);
     }
   }, [categoryData]);
 
@@ -62,7 +43,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
     if (!imageFile) return previewUrl; // no new image
     const fileName = `${Date.now()}-${imageFile.name}`;
     const { data, error } = await supabase.storage
-      .from('categories') // storage bucket name
+      .from('tags') // storage bucket name
       .upload(fileName, imageFile);
 
     if (error) {
@@ -71,7 +52,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
     }
 
     const { data: publicUrlData } = supabase.storage
-      .from('categories')
+      .from('tags')
       .getPublicUrl(fileName);
 
     return publicUrlData?.publicUrl || previewUrl;
@@ -84,9 +65,9 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
     const uploadedImageUrl = await uploadImage();
 
     if (categoryData?.id) {
-      onUpdate(categoryData.id, category, slug, uploadedImageUrl,featured,parentId);
+      onUpdate(categoryData.id, category, slug, uploadedImageUrl,featured);
     } else {
-      onSave(category, slug, uploadedImageUrl,featured,parentId);
+      onSave(category, slug, uploadedImageUrl,featured);
     }
 
     // Close modal manually
@@ -100,7 +81,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">
-                {categoryData ? 'Edit Sector/Phase' : 'Add Sector/Phase'}
+                {categoryData ? 'Edit Category' : 'Add Category'}
               </h5>
               <button
                 type="button"
@@ -111,50 +92,35 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
               ></button>
             </div>
             <div className="modal-body">
-            <div className="mb-3">
-                <label className="form-label">City</label>
-                <select
-                  className="form-select"
-                  value={parentId || ''}
-                  onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
-                >
-                  <option value="">-- Select City --</option>
-                  {parentCategories.map((mc) => (
-                    <option key={mc.id} value={mc.id}>
-                      {mc.category}
-                    </option>
-                  ))}
-                </select>
-              </div>
               {/* Category Name */}
               <div className="mb-3">
-                <label className="form-label">Sector/Phase Name</label>
+                <label className="form-label">Tag Name</label>
                 <input
                   type="text"
                   className="form-control"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Enter Sector/Phase"
+                  placeholder="Enter tag name"
                   required
                 />
               </div>
 
               {/* Category Slug */}
               <div className="mb-3">
-                <label className="form-label">Slug</label>
+                <label className="form-label">Tag Slug</label>
                 <input
                   type="text"
                   className="form-control"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder="Enter slug"
+                  placeholder="Enter tag slug"
                   required
                 />
               </div>
 
               {/* Category Image */}
               <div className="mb-3">
-                <label className="form-label">Image</label>
+                <label className="form-label">tag Image</label>
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (
@@ -176,7 +142,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
 
               {/* Featured Option */}
               <div className="mb-4">
-                <label className="form-label">Is Featured?</label>
+                <label className="form-label">Is Link?</label>
                 <ul className="custom-radiosbtn">
                   <li>
                     <label className="radiossets">
@@ -215,4 +181,4 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
   );
 };
 
-export default CatogriesModal;
+export default TagsModal;

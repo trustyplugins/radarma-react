@@ -6,8 +6,8 @@ import { Dropdown } from 'primereact/dropdown';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import SubCatogriesModal from '../common/modals/subcategories-modal';
-import DeleteSubCategoriesModal from '../common/modals/delete-subcategories-modal';
+import MainCatogriesModal from '../common/modals/maincategories-modal';
+import DeleteMainCategoriesModal from '../common/modals/delete-maincategories-modal';
 import supabase from '../../../supabaseClient';
 import { useSession } from '../SessionContext';
 const MainCategoryList = () => {
@@ -23,7 +23,7 @@ const MainCategoryList = () => {
   const fetchCategories = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('sub_categories')
+      .from('main_categories')
       .select(`
             id,
             category,
@@ -43,7 +43,7 @@ const MainCategoryList = () => {
 
   const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
     const { error } = await supabase
-      .from('sub_categories')
+      .from('main_categories')
       .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, user_id: profile.id }]);
 
     if (!error) fetchCategories();
@@ -52,7 +52,7 @@ const MainCategoryList = () => {
   // 🔹 Update Category
   const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean) => {
     const { error } = await supabase
-      .from('sub_categories')
+      .from('main_categories')
       .update({ category, category_slug: slug, image_url: image_url, featured: featured })
       .eq('id', id);
 
@@ -65,7 +65,7 @@ const MainCategoryList = () => {
   // 🔹 Delete Category
   const handleDeleteCategory = async (id: number) => {
     const { error } = await supabase
-      .from('sub_categories')
+      .from('main_categories')
       .delete()
       .eq('id', id);
 
@@ -76,7 +76,7 @@ const MainCategoryList = () => {
   };
   const toggleFeatured = async (rowData: any) => {
     const { error } = await supabase
-      .from('sub_categories')
+      .from('main_categories')
       .update({ featured: !rowData.featured })
       .eq('id', rowData.id);
 
@@ -218,11 +218,11 @@ const MainCategoryList = () => {
           </div>
         </div>
       </div>
-      <SubCatogriesModal
+      <MainCatogriesModal
         categoryData={editCategory}
         onSave={handleAddCategory}
         onUpdate={handleUpdateCategory} />
-      <DeleteSubCategoriesModal 
+      <DeleteMainCategoriesModal 
       categoryData={deleteCategory}
         onDelete={handleDeleteCategory} />
     </>
