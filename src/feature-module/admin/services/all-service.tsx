@@ -8,19 +8,6 @@ import * as Icon from 'react-feather';
 import { all_routes } from '../../../core/data/routes/all_routes';
 import supabase from '../../../supabaseClient';
 
-type Listing = {
-  id: string;
-  title: string;
-  category: string | null;
-  sub_category: string | null;
-  price: number | null;
-  status: string;
-  slug: string;
-  user_id: string | null;
-  created_at: string;
-  gallery_urls: string[] | null;
-};
-
 type Role = 'A1' | 'A2' | null;
 type SortOpt = { name: string; key: 'az' | 'za' | 'new' | 'old' };
 const sortOptions: SortOpt[] = [
@@ -30,17 +17,60 @@ const sortOptions: SortOpt[] = [
   { name: 'Oldest', key: 'old' },
 ];
 
+/** Raw row from listings (IDs only) */
+type ListingRaw = {
+  id: string;
+  title: string;
+  city_id: number | null;
+  sector_ids: number[] | null;
+  main_category_ids: number[] | null;
+  sub_category_ids: number[] | null;
+  tag_ids: number[] | null;
+  sub_tag_ids: number[] | null;
+  price: number | null;
+  status: string;
+  slug: string;
+  user_id: string | null;
+  created_at: string;
+  gallery_urls: string[] | null;
+};
+
+/** Row we render (names resolved) */
+type ListingRow = {
+  id: string;
+  title: string;
+  city: string;              // single name
+  sector: string;            // comma-joined
+  main_category: string;     // comma-joined
+  sub_category: string;      // comma-joined
+  tags: string;              // comma-joined
+  sub_tags: string;          // comma-joined
+  status: string;
+  slug: string;
+  user_id: string | null;
+  created_at: string;
+  gallery_urls: string[] | null;
+};
+
 const AllService: React.FC = () => {
   const routes = all_routes;
+
   const [userId, setUserId] = useState<string | null>(null);
   const [role, setRole] = useState<Role>(null);
-
   const [selectedSort, setSelectedSort] = useState<SortOpt>(sortOptions[2]);
-  const [rows, setRows] = useState<Listing[]>([]);
+  const [rows, setRows] = useState<ListingRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Get auth user + role from rd_users
+  // --- lookup maps ---
+  const [cityMap, setCityMap] = useState<Record<number, string>>({});
+  const [sectorMap, setSectorMap] = useState<Record<number, string>>({});
+  const [mainCatMap, setMainCatMap] = useState<Record<number, string>>({});
+  const [subCatMap, setSubCatMap] = useState<Record<number, string>>({});
+  const [tagMap, setTagMap] = useState<Record<number, string>>({});
+  const [subTagMap, setSubTagMap] = useState<Record<number, string>>({});
+
+  // auth + role
   useEffect(() => {
     (async () => {
       setErr(null);
@@ -50,19 +80,59 @@ const AllService: React.FC = () => {
       setUserId(uid);
 
       if (!uid) { setRole(null); return; }
-
       const { data: ru, error: ruErr } = await supabase
         .from('rd_users')
         .select('role')
         .eq('user_id', uid)
         .maybeSingle();
-
       if (ruErr) { setErr(ruErr.message); return; }
       setRole((ru?.role === 'A1' || ru?.role === 'A2') ? ru.role : null);
     })();
   }, []);
 
-  // Fetch listings after we know role/user
+  // load all lookups once
+  useEffect(() => {
+    (async () => {
+      try {
+        const [
+          citiesRes,
+          sectorsRes,
+          mainsRes,
+          subsRes,
+          tagsRes,
+          subTagsRes,
+        ] = await Promise.all([
+          supabase.from('cities').select('id, category'),
+          supabase.from('sectors').select('id, category'),
+          supabase.from('main_categories').select('id, category'),
+          supabase.from('sub_categories').select('id, category'),
+          supabase.from('tags').select('id, category'),
+          supabase.from('sub_tags').select('id, category'),
+        ]);
+
+        const toMap = (rows?: any[]) => {
+          const m: Record<number, string> = {};
+          (rows ?? []).forEach(r => { m[r.id] = r.category; });
+          return m;
+        };
+
+        setCityMap(toMap(citiesRes.data));
+        setSectorMap(toMap(sectorsRes.data));
+        setMainCatMap(toMap(mainsRes.data));
+        setSubCatMap(toMap(subsRes.data));
+        setTagMap(toMap(tagsRes.data));
+        setSubTagMap(toMap(subTagsRes.data));
+      } catch (e: any) {
+        setErr(e.message ?? 'Failed to load lookups.');
+      }
+    })();
+  }, []);
+
+  // helper: map ids -> names (joined)
+  const joinNames = (ids: number[] | null | undefined, map: Record<number, string>) =>
+    (ids ?? []).map(id => map[id]).filter(Boolean).join(', ');
+
+  // listings fetch + hydrate
   const fetchListings = async () => {
     if (role === null) return; // still resolving role
     setLoading(true);
@@ -70,14 +140,10 @@ const AllService: React.FC = () => {
     try {
       let q = supabase
         .from('listings')
-        .select('id,title,category,sub_category,price,status,slug,user_id,created_at,gallery_urls');
+        .select('id,title,city_id,sector_ids,main_category_ids,sub_category_ids,tag_ids,sub_tag_ids,price,status,slug,user_id,created_at,gallery_urls');
 
-      // Client-side filter for A2 (RLS already protects, but this avoids extra rows)
-      if (role === 'A2' && userId) {
-        q = q.eq('user_id', userId);
-      }
-console.log(q);
-      // Sort
+      if (role === 'A2' && userId) q = q.eq('user_id', userId);
+
       if (selectedSort.key === 'az')  q = q.order('title', { ascending: true,  nullsFirst: true });
       if (selectedSort.key === 'za')  q = q.order('title', { ascending: false, nullsLast: true });
       if (selectedSort.key === 'new') q = q.order('created_at', { ascending: false, nullsLast: true });
@@ -85,7 +151,24 @@ console.log(q);
 
       const { data, error } = await q;
       if (error) throw error;
-      setRows(data ?? []);
+
+      const hydrated: ListingRow[] = (data as ListingRaw[]).map(r => ({
+        id: r.id,
+        title: r.title,
+        city: r.city_id ? (cityMap[r.city_id] ?? '—') : '—',
+        sector: joinNames(r.sector_ids, sectorMap),
+        main_category: joinNames(r.main_category_ids, mainCatMap),
+        sub_category: joinNames(r.sub_category_ids, subCatMap),
+        tags: joinNames(r.tag_ids, tagMap),
+        sub_tags: joinNames(r.sub_tag_ids, subTagMap),
+        status: r.status,
+        slug: r.slug,
+        user_id: r.user_id,
+        created_at: r.created_at,
+        gallery_urls: r.gallery_urls,
+      }));
+
+      setRows(hydrated);
     } catch (e: any) {
       setErr(e.message ?? 'Failed to load listings.');
     } finally {
@@ -96,24 +179,29 @@ console.log(q);
   useEffect(() => {
     if (role !== null) fetchListings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, userId, selectedSort.key]);
+  }, [role, userId, selectedSort.key, cityMap, sectorMap, mainCatMap, subCatMap, tagMap, subTagMap]);
 
-  // Render helpers
-  const renderService = (res: Listing) => {
+  // render helpers
+  const renderService = (res: ListingRow) => {
     const cover = res.gallery_urls?.[0];
     return (
       <Link to="#" className="table-imgname" onClick={(e) => e.preventDefault()}>
         {cover ? (
-          <img src={cover} className="me-2" alt="cover" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+          <img
+            src={cover}
+            className="me-2"
+            alt="cover"
+            style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }}
+          />
         ) : (
-          <ImageWithBasePath src="assets/admin/img/placeholder.png" className="me-2" alt="img" />
+          <ImageWithBasePath src="assets/admin/img/services/service-01.jpg" className="me-2" alt="img" />
         )}
         <span>{res.title}</span>
       </Link>
     );
   };
 
-  const renderStatus = (res: Listing) => {
+  const renderStatus = (res: ListingRow) => {
     const cls =
       res.status === 'Active' ? 'badge-active' :
       res.status === 'Delete' ? 'badge-delete' :
@@ -122,16 +210,9 @@ console.log(q);
     return <h6 className={cls}>{res.status}</h6>;
   };
 
-  const renderOwner = (res: Listing) => {
-    //console.log(res);
+  const renderOwner = (res: ListingRow) => {
     const short = res.user_id ? `${res.user_id.slice(0, 6)}…` : '—';
-    return (
-      <span>{short}</span>
-      // <Link to="#" className="table-profileimage" onClick={(e) => e.preventDefault()}>
-      //   <ImageWithBasePath src="assets/admin/img/avatars/user-01.jpg" className="me-2" alt="img" />
-      //   <span>{short}</span>
-      // </Link>
-    );
+    return <span>{short}</span>;
   };
 
   const onDelete = async (id: string) => {
@@ -141,7 +222,7 @@ console.log(q);
     setRows(prev => prev.filter(r => r.id !== id));
   };
 
-  const renderActions = (res: Listing) => (
+  const renderActions = (res: ListingRow) => (
     <div className="action-language">
       <Link className="table-edit" to={`/admin/services/edit-services/${res.id}`}>
         <i className="fa-regular fa-pen-to-square"></i>
@@ -154,104 +235,107 @@ console.log(q);
     </div>
   );
 
-  const totalText = useMemo(() => `Showing 1-${Math.min(rows.length, 10)} of ${rows.length} results`, [rows.length]);
+  const totalText = useMemo(
+    () => `Showing 1-${Math.min(rows.length, 10)} of ${rows.length} results`,
+    [rows.length]
+  );
 
   return (
-    <>
-      <div className="page-wrapper page-settings">
-        <div className="content">
-          <div className="content-page-header content-page-headersplit">
-            <h5>All Services</h5>
-            <div className="list-btn">
-              <ul>
-                <li>
-                  <div className="filter-sorting">
-                    <ul>
-                      <li>
-                        <Link to="#" className="filter-sets" onClick={(e) => e.preventDefault()}>
-                          <Icon.Filter className="react-feather-custom me-2" />
-                          Filter
-                        </Link>
-                      </li>
-                      <li>
-                        <span>
-                          <ImageWithBasePath src="assets/admin/img/icons/sort.svg" className="me-2" alt="img" />
-                        </span>
-                        <div className="review-sort">
-                          <Dropdown
-                            value={selectedSort}
-                            onChange={(e) => setSelectedSort(e.value)}
-                            options={sortOptions}
-                            optionLabel="name"
-                            placeholder="A - Z"
-                            className="select admin-select-breadcrumb"
-                          />
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </li>
-                <li>
-                  <Link className="btn btn-primary" to="/services/add-service">
-                    <i className="fa fa-plus me-2" />
-                    Create Services
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {err && <div className="alert alert-danger">{err}</div>}
-
-          <div className="row">
-            <div className="col-12">
-              <div className="tab-sets">
-                <div className="tab-contents-sets">
+    <div className="page-wrapper page-settings">
+      <div className="content">
+        <div className="content-page-header content-page-headersplit">
+          <h5>All Services</h5>
+          <div className="list-btn">
+            <ul>
+              <li>
+                <div className="filter-sorting">
                   <ul>
-                    <li><Link to="services" className="active">All Listings</Link></li>
-                    <li><Link to={routes.activeServices}>Active</Link></li>
-                    <li><Link to={routes.pendingServices}>Pending </Link></li>
-                    <li><Link to={routes.inActiveServices}>Inactive </Link></li>
-                    <li><Link to={routes.deletedServices}>Deleted </Link></li>
+                    <li>
+                      <Link to="#" className="filter-sets" onClick={(e) => e.preventDefault()}>
+                        <Icon.Filter className="react-feather-custom me-2" />
+                        Filter
+                      </Link>
+                    </li>
+                    <li>
+                      <span>
+                        <ImageWithBasePath src="assets/admin/img/icons/sort.svg" className="me-2" alt="img" />
+                      </span>
+                      <div className="review-sort">
+                        <Dropdown
+                          value={selectedSort}
+                          onChange={(e) => setSelectedSort(e.value)}
+                          options={sortOptions}
+                          optionLabel="name"
+                          placeholder="A - Z"
+                          className="select admin-select-breadcrumb"
+                        />
+                      </div>
+                    </li>
                   </ul>
                 </div>
-                <div className="tab-contents-count">
-                  <h6>{loading ? 'Loading…' : totalText}</h6>
-                </div>
-              </div>
-            </div>
+              </li>
+              <li>
+                <Link className="btn btn-primary" to="/services/add-service">
+                  <i className="fa fa-plus me-2" />
+                  Create Services
+                </Link>
+              </li>
+            </ul>
           </div>
+        </div>
 
-          <div className="row">
-            <div className="col-12 ">
-              <div className="table-resposnive table-div">
-                <table className="table datatable">
-                  <DataTable
-                    value={rows}
-                    loading={loading}
-                    paginator
-                    rows={10}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
-                    currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                    tableStyle={{ minWidth: '50rem' }}
-                  >
-                    <Column field="id" header="#" sortable body={(r, opts) => opts.rowIndex + 1} />
-                    <Column field="title" header="Service" sortable body={renderService} />
-                    <Column field="category" header="Category" sortable />
-                    <Column field="sub_category" header="Sub Category" sortable />
-                    {/* <Column field="price" header="Price" sortable body={(r: Listing) => r.price != null ? `₹${r.price}` : '—'} /> */}
-                    <Column field="status" header="Status" sortable body={renderStatus} />
-                    <Column field="user_id" header="Created By" body={renderOwner} />
-                    <Column header="Action" body={renderActions} />
-                  </DataTable>
-                </table>
+        {err && <div className="alert alert-danger">{err}</div>}
+
+        <div className="row">
+          <div className="col-12">
+            <div className="tab-sets">
+              <div className="tab-contents-sets">
+                <ul>
+                  <li><Link to="services" className="active">All Listings</Link></li>
+                  <li><Link to={routes.activeServices}>Active</Link></li>
+                  <li><Link to={routes.pendingServices}>Pending </Link></li>
+                  <li><Link to={routes.inActiveServices}>Inactive </Link></li>
+                  <li><Link to={routes.deletedServices}>Deleted </Link></li>
+                </ul>
+              </div>
+              <div className="tab-contents-count">
+                <h6>{loading ? 'Loading…' : totalText}</h6>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="row">
+          <div className="col-12 ">
+            <div className="table-resposnive table-div">
+              <table className="table datatable">
+                <DataTable
+                  value={rows}
+                  loading={loading}
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
+                  currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                  tableStyle={{ minWidth: '60rem' }}
+                >
+                  <Column field="title" header="Service" sortable body={renderService} />
+                  <Column field="city" header="City" sortable />
+                  <Column field="sector" header="Sector(s)" sortable />
+                  <Column field="main_category" header="Main Category(ies)" sortable />
+                  <Column field="sub_category" header="Sub Category(ies)" sortable />
+                  <Column field="tags" header="Tags" sortable />
+                  <Column field="sub_tags" header="Sub Tags" sortable />
+                  <Column field="status" header="Status" sortable body={renderStatus} />
+                  {/* <Column field="user_id" header="Created By" body={renderOwner} /> */}
+                  <Column header="Action" body={renderActions} />
+                </DataTable>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -6,11 +6,11 @@ import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
-import MCatogriesModal from '../common/modals/master-categories-modal';
-import DeleteMCategoriesModal from '../common/modals/delete-master-cat-modal';
+import SubTagsModal from '../common/modals/subtags-modal';
+import DeleteSubtagsModal from '../common/modals/delete-subtags-modal';
 import supabase from '../../../supabaseClient';
 import { useSession } from '../SessionContext';
-const LinkTags = () => {
+const SubTags = () => {
     const [selectedValue, setSelectedValue] = useState(null);
     const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
     const [categories, setCategories] = useState<any[]>([]);
@@ -24,8 +24,16 @@ const LinkTags = () => {
     const fetchCategories = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from('master_categories')
-            .select('*')
+            .from('sub_tags')
+            .select(`
+            id,
+            category,
+            category_slug,
+            image_url,
+            created_at,
+            parent_id,
+           tags:parent_id ( category )
+          `)
             .order('id', { ascending: true });
 
         if (!error) setCategories(data);
@@ -37,19 +45,19 @@ const LinkTags = () => {
     }, []);
 
     // 🔹 Add Category
-    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
+    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean,parentId: number | null) => {
         const { error } = await supabase
-            .from('master_categories')
-            .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, user_id: profile.id }]);
+            .from('sub_tags')
+            .insert([{ category, category_slug: slug, image_url: image_url,parent_id: parentId, user_id: profile.id }]);
 
         if (!error) fetchCategories();
     };
 
     // 🔹 Update Category
-    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean) => {
+    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean,parentId: number | null) => {
         const { error } = await supabase
-            .from('master_categories')
-            .update({ category, category_slug: slug, image_url: image_url, featured: featured })
+            .from('sub_tags')
+            .update({ category, category_slug: slug, image_url: image_url,parent_id: parentId})
             .eq('id', id);
 
         if (!error) {
@@ -61,7 +69,7 @@ const LinkTags = () => {
     // 🔹 Delete Category
     const handleDeleteCategory = async (id: number) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('sub_tags')
             .delete()
             .eq('id', id);
 
@@ -74,7 +82,7 @@ const LinkTags = () => {
     // 🔹 Toggle Featured
     const toggleFeatured = async (rowData: any) => {
         const { error } = await supabase
-            .from('master_categories')
+            .from('sub_tags')
             .update({ featured: !rowData.featured })
             .eq('id', rowData.id);
 
@@ -122,7 +130,7 @@ const LinkTags = () => {
             <div className="page-wrapper page-settings">
                 <div className="content">
                     <div className="content-page-header content-page-headersplit mb-0">
-                        <h5>Link Tags</h5>
+                        <h5>Sub Tags</h5>
                         <div className="list-btn">
                             <ul>
                                 <li>
@@ -165,7 +173,7 @@ const LinkTags = () => {
                                         onClick={() => setEditCategory(null)} // reset for Add
                                     >
                                         <i className="fa fa-plus me-2" />
-                                        Add Link Tag
+                                        Add Sub Tag
                                     </button>
                                 </li>
                             </ul>
@@ -212,14 +220,14 @@ const LinkTags = () => {
             </div>
 
             {/* Add / Edit Modal */}
-            <MCatogriesModal
+            <SubTagsModal
                 categoryData={editCategory}
                 onSave={handleAddCategory}
                 onUpdate={handleUpdateCategory}
             />
 
             {/* Delete Modal */}
-            <DeleteMCategoriesModal
+            <DeleteSubtagsModal
                 categoryData={deleteCategory}
                 onDelete={handleDeleteCategory}
             />
@@ -227,4 +235,4 @@ const LinkTags = () => {
     );
 };
 
-export default LinkTags;
+export default SubTags;

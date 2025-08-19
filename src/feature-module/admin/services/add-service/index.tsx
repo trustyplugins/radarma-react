@@ -6,16 +6,20 @@ import Gallery from './gallery';
 import EditSeo from './seo';
 import supabase from '../../../../supabaseClient';
 type AdditionalRow = { id: number; additionalService: string; price: number; duration: string };
+type Option = { id: number; name: string };
+type TagOption = { id: number; name: string };
 type Info = {
   title: string;
-  masterCategory: { id: number; name: string } | null;
-  category: { id: number; name: string } | null;
-  subCategory: { id: number; name: string } | null;
+  masterCategory: Option | null;   // city in UI
+  category: Option[];              // sectors (multi)
+  mainCategory: Option[];          // main categories (multi)
+  subCategory: Option[];           // sub categories (multi)
+  tags: TagOption[];               // tags (multi)
+  subTags: TagOption[];            // sub tags (multi)
   description: string;
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl: string;
-  tags: { id: number; name: string }[];   // 👈 add this
 };
 
 
@@ -54,13 +58,15 @@ const initialForm: AddServiceForm = {
   info: {
     title: '',
     masterCategory: null,
-    category: null,
-    subCategory: null,
+    category: [],
+    mainCategory: [],
+    subCategory: [],
+    tags: [],
+    subTags: [],
     description: '',
     additionalEnabled: true,
     additional: [{ id: 1, additionalService: '', price: 0, duration: '' }],
     videoUrl: '',
-    tags: [],  // 👈
   },
   availability: {
     all: [{ ...emptySlot }],
@@ -204,18 +210,20 @@ const AddService = () => {
 
       const payload = {
         user_id: user.id,
-
         // information
         title: form.info.title,
         description: form.info.description || null,
-        master_category: form.info.masterCategory?.id ?? null,
-        category: form.info.category?.id ?? null,
-        sub_category: form.info.subCategory?.id ?? null,
+        // store NAMES to match your current TEXT columns
+        city_id: form.info.masterCategory?.id ?? null,
+        sector_ids: form.info.category.map(o => o.id),
+        main_category_ids: form.info.mainCategory.map(o => o.id),
+        sub_category_ids: form.info.subCategory.map(o => o.id),
+        tag_ids: form.info.tags.map(o => o.id),
+        sub_tag_ids: form.info.subTags.map(o => o.id),
         additional_enabled: !!form.info.additionalEnabled,
         additional: form.info.additional?.length ? form.info.additional : [],
         video_url: form.info.videoUrl || null,
-        price: form.info.price ?? null,
-
+        // price: form.info.price ?? null,
         // availability
         availability: fillAvailability(),
 
@@ -235,6 +243,7 @@ const AddService = () => {
 
         status: 'draft',
       };
+
 
       const { data, error } = await supabase
         .from('listings')           // 👈 new table

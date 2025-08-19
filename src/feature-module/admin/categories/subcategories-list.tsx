@@ -19,6 +19,7 @@ const MainCategoryList = () => {
   const [selectedValue, setSelectedValue] = useState(null);
   const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
   const data = useSelector((state: any) => state.categoriesData);
+  
   // 🔹 Fetch Categories
   const fetchCategories = async () => {
     setLoading(true);
@@ -29,7 +30,9 @@ const MainCategoryList = () => {
             category,
             category_slug,
             image_url,
-            created_at
+            created_at,
+            parent_id,
+            main_categories:parent_id ( category )
           `)
       .order('id', { ascending: true });
 
@@ -41,19 +44,19 @@ const MainCategoryList = () => {
     fetchCategories();
   }, []);
 
-  const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
+  const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean,parentId: number | null) => {
     const { error } = await supabase
       .from('sub_categories')
-      .insert([{ category, category_slug: slug, image_url: image_url, featured: featured, user_id: profile.id }]);
+      .insert([{ category, category_slug: slug, image_url: image_url, featured: featured,parent_id: parentId, user_id: profile.id }]);
 
     if (!error) fetchCategories();
   };
 
   // 🔹 Update Category
-  const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean) => {
+  const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean,parentId: number | null) => {
     const { error } = await supabase
       .from('sub_categories')
-      .update({ category, category_slug: slug, image_url: image_url, featured: featured })
+      .update({ category, category_slug: slug, image_url: image_url, featured: featured,parent_id: parentId })
       .eq('id', id);
 
     if (!error) {
@@ -168,7 +171,7 @@ const MainCategoryList = () => {
                     data-bs-target="#add-category"
                   >
                     <i className="fa fa-plus me-2" />
-                    Add Category
+                    Add Sub Category
                   </button>
                 </li>
               </ul>
@@ -200,12 +203,12 @@ const MainCategoryList = () => {
                         )
                       }
                     ></Column>
-                    {/* <Column
-                      header="Parent Category"
+                    <Column
+                      header="Main Category"
                       body={(rowData) =>
-                        rowData.categories?.category ? rowData.categories.category : <span style={{ color: '#999' }}>No Parent</span>
+                        rowData.main_categories?.category ? rowData.main_categories.category : <span style={{ color: '#999' }}>No Parent</span>
                       }
-                    /> */}
+                    />
                     <Column sortable field="category" header="Categories"></Column>
                     <Column sortable field="category_slug" header="Slug"></Column>
                     {/* <Column sortable field="created_at" header="Date"></Column> */}

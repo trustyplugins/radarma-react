@@ -10,7 +10,6 @@ interface Props {
     slug: string,
     imageUrl: string,
     featured: boolean,
-    masterId: number | null,
     parentId: number | null
   ) => void;
   onUpdate: (
@@ -19,7 +18,6 @@ interface Props {
     slug: string,
     imageUrl: string,
     featured: boolean,
-    masterId: number | null,
     parentId: number | null
   ) => void;
 }
@@ -30,8 +28,24 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
   const [featured, setFeatured] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [parentCategories, setParentCategories] = useState<any[]>([]);
+  const [parentId, setParentId] = useState<number | null>(null);
 
-  
+  // Fetch master categories for dropdown
+  const fetchParentCategories = async () => {
+    const { data, error } = await supabase
+      .from('main_categories')
+      .select('id, category')
+      .order('category', { ascending: true });
+    if (!error && data) {
+      setParentCategories(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchParentCategories();
+  }, []);
+
 
   // --- When editing, populate fields ---
   useEffect(() => {
@@ -41,7 +55,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
       setPreviewUrl(categoryData.image_url || '');
       setFeatured(!!categoryData.featured);
       // setMasterId(categoryData.master_id || null);
-      // setParentId(categoryData.parent_id || null);
+      setParentId(categoryData.parent_id || null);
     } else {
       setCategory('');
       setSlug('');
@@ -49,7 +63,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
       setPreviewUrl('');
       setFeatured(false);
       // setMasterId(null);
-      // setParentId(null);
+      setParentId(null);
     }
   }, [categoryData]);
 
@@ -96,11 +110,10 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
         slug,
         uploadedImageUrl,
         featured,
-        // masterId,
-        // parentId
+        parentId
       );
     } else {
-      onSave(category, slug, uploadedImageUrl, featured);
+      onSave(category, slug, uploadedImageUrl, featured, parentId);
     }
 
     // Close modal
@@ -114,7 +127,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">
-                {categoryData ? 'Edit Category' : 'Add Category'}
+                {categoryData ? 'Edit Sub Category' : 'Add Sub Category'}
               </h5>
               <button
                 type="button"
@@ -125,17 +138,31 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
               ></button>
             </div>
             <div className="modal-body">
-             
 
+              <div className="mb-3">
+                <label className="form-label">Main Category</label>
+                <select
+                  className="form-select"
+                  value={parentId || ''}
+                  onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
+                >
+                  <option value="">-- Select Category --</option>
+                  {parentCategories.map((mc) => (
+                    <option key={mc.id} value={mc.id}>
+                      {mc.category}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {/* Subcategory Name */}
               <div className="mb-3">
-                <label className="form-label">Category Name</label>
+                <label className="form-label">Sub Category Name</label>
                 <input
                   type="text"
                   className="form-control"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Enter category name"
+                  placeholder="Enter name"
                   required
                 />
               </div>

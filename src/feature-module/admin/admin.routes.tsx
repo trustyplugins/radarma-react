@@ -39,7 +39,7 @@ import CreateMenu from './management/create-menu';
 import AddService from './services/add-service';
 import { SessionProvider } from './SessionContext';
 import SortingTags from './categories/sorting-tags';
-import LinkTags from './categories/link-tags';
+import SubTags from './categories/sub-tags';
 const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
   const all_admin_routes = [
     {
@@ -159,19 +159,19 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       role:['A1']
     },
     {
-      path: '/sorting-tags/categories-list',
+      path: '/sorting-tags/tags-list',
       name: 'categories',
       element: <SortingTags />,
       route: Route,
       role:['A1']
     },
-    // {
-    //   path: '/link-tags/categories-list',
-    //   name: 'categories',
-    //   element: <LinkTags />,
-    //   route: Route,
-    //   role:['A1']
-    // },
+    {
+      path: '/sorting-tags/sub-tags',
+      name: 'categories',
+      element: <SubTags />,
+      route: Route,
+      role:['A1']
+    },
     {
       path: '/setting/social-profile',
       name: 'social-profile',

@@ -66,6 +66,14 @@ export const adminSidebar = [
             menuValue: 'Sub Categories',
             route: routes.subCategories,
           },
+          {
+            menuValue: 'Tags',
+            route: routes.sortingTags,
+          },
+          {
+            menuValue: 'Sub Tags',
+            route: routes.subTags,
+          }
         ],
       },
       // {
