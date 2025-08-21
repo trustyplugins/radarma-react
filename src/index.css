@@ -1631,3 +1631,6 @@ margin-right: 20px;
   right: 0px;
   left: auto;
 }
+.form-group.special > div {
+  display: block;
+}

@@ -224,7 +224,7 @@ const AllService: React.FC = () => {
 
   const renderActions = (res: ListingRow) => (
     <div className="action-language">
-      <Link className="table-edit" to={`/admin/services/edit-services/${res.id}`}>
+      <Link className="table-edit" to={`/services/edit-service/${res.id}`}>
         <i className="fa-regular fa-pen-to-square"></i>
         <span>Edit</span>
       </Link>
@@ -308,7 +308,7 @@ const AllService: React.FC = () => {
         <div className="row">
           <div className="col-12 ">
             <div className="table-resposnive table-div">
-              <table className="table datatable">
+              <div className="table datatable">
                 <DataTable
                   value={rows}
                   loading={loading}
@@ -330,7 +330,7 @@ const AllService: React.FC = () => {
                   {/* <Column field="user_id" header="Created By" body={renderOwner} /> */}
                   <Column header="Action" body={renderActions} />
                 </DataTable>
-              </table>
+              </div>
             </div>
           </div>
         </div>

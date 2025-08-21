@@ -5,12 +5,13 @@ import DefaultEditor from 'react-simple-wysiwyg';
 import * as Icon from 'react-feather';
 import supabase from '../../../../supabaseClient';
 import { MultiSelect } from 'primereact/multiselect';
-
+import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
   additionalService: string;
   price: number;
   duration: string;
+  speciality: boolean;
 };
 
 type Option = { id: number; name: string };
@@ -37,6 +38,7 @@ type Props = {
 };
 
 const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
+
   const [masterOptions, setMasterOptions] = useState<Option[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
   const [mainCategoryOptions, setMainCategoryOptions] = useState<Option[]>([]);
@@ -143,7 +145,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: '', price: 0, duration: '' },
+        { id: newId, additionalService: '', price: 0, duration: '', speciality: false },
       ],
     });
   };
@@ -159,7 +161,6 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     );
     onChange({ additional: next });
   };
-
   return (
     <fieldset id="first-field">
       <div className="container-service space-service">
@@ -327,7 +328,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           <div className="addservice-info">
             {(value.additional || []).map(row => (
               <div key={row.id} className="row service-cont">
-                <div className="col-md-4">
+                <div className="col-md-3">
                   <div className="form-group">
                     <label>Additional Service</label>
                     <input
@@ -339,7 +340,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
                   <div className="form-group">
                     <label>Price</label>
                     <input
@@ -363,6 +364,22 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     />
                   </div>
                 </div>
+                <div className="col-md-3">
+                  <div className="form-group special">
+                    <label>Speciality</label>
+                    <InputSwitch
+                      checked={row.speciality}
+                      onChange={(e) => {
+                        const next = (value.additional || []).map(r =>
+                          r.id === row.id ? { ...r, speciality: e.value } : r
+                        );
+                        onChange({ additional: next });
+                      }}
+                    />
+                  </div>
+                </div>
+
+
                 {row.id > 1 && (
                   <div className="col-md-1">
                     <button

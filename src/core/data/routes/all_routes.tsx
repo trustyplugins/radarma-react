@@ -181,7 +181,7 @@ export const all_routes = {
   inActiveServices: '/services/inactive-services',
   addServices: '/services/add-service',
   allServices: '/services/all-services',
-  editService: '/services/edit-services',
+  editService: '/services/edit-service',
   inProgressBooking: '/booking/inprogress-booking',
   pendingServices: '/services/pending-services',
   dashboard: '/dashboard',

@@ -5,7 +5,8 @@ import Location from './location';
 import Gallery from './gallery';
 import EditSeo from './seo';
 import supabase from '../../../../supabaseClient';
-type AdditionalRow = { id: number; additionalService: string; price: number; duration: string };
+import { useNavigate} from "react-router-dom";
+type AdditionalRow = { id: number; additionalService: string; price: number; duration: string,speciality:boolean };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
@@ -44,6 +45,7 @@ type SeoT = {
   slug: string;              // unique constraint in DB recommended
   metaTitle?: string;
   metaDescription?: string;
+  metaKeywords?: string[];
 };
 
 type AddServiceForm = {
@@ -65,7 +67,7 @@ const initialForm: AddServiceForm = {
     subTags: [],
     description: '',
     additionalEnabled: true,
-    additional: [{ id: 1, additionalService: '', price: 0, duration: '' }],
+    additional: [{ id: 1, additionalService: '', price: 0, duration: '',speciality:false }],
     videoUrl: '',
   },
   availability: {
@@ -82,7 +84,7 @@ const initialForm: AddServiceForm = {
   },
   location: {},
   gallery: { files: [] },
-  seo: { slug: '' },
+  seo: { slug: '', metaKeywords: [] },
 };
 
 
@@ -96,6 +98,7 @@ const AddService = () => {
   const [form, setForm] = useState<AddServiceForm>(initialForm);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const navigate = useNavigate();
   const availabilityTab = () => {
     setPageChange('booking');
     setTabChange1(true);
@@ -250,12 +253,10 @@ const AddService = () => {
         .insert(payload)
         .select()
         .single();
-
       if (error) throw error;
-
       setForm(initialForm);
       alert('Listing saved successfully!');
-      // navigate(`/listings/${data.slug}`) if you like
+      navigate("/services/all-services");
     } catch (e: any) {
       console.error(e);
       setErrorMsg(e.message ?? 'Failed to save listing.');
@@ -263,10 +264,7 @@ const AddService = () => {
       setSaving(false);
     }
   };
-
-
-
-  console.log(form);
+  //console.log(form);
   return (
     <>
       <div className="page-wrapper">

@@ -16,7 +16,6 @@ type Props = {
 };
 
 const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
-  console.log("apikey:",process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
   const { isLoaded, loadError } = useJsApiLoader({
    // id: 'google-map-script',
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
