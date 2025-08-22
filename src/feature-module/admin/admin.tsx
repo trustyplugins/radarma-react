@@ -54,7 +54,7 @@ const Admin = () => {
   
   useEffect(() => {
     console.log(window.location.pathname);
-    import("../../style/scss/main.scss");
+   // import("../../style/scss/main.scss");
     import("../../style/admin/css/admin.css");
     // window.location.pathname.includes("/admin")
     //   ? import("../../style/admin/css/admin.css")
