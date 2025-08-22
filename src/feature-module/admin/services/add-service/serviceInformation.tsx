@@ -90,24 +90,40 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchMainCategories();
   }, []);
 
-  // fetch subcategories when mainCategory changes
-  useEffect(() => {
-    const fetchSubCategories = async () => {
-      if (!value.mainCategory?.length) {
-        setSubCategoryOptions([]);
-        return;
+// fetch subcategories when mainCategory changes
+useEffect(() => {
+  const fetchSubCategories = async () => {
+    if (!value.mainCategory?.length) {
+      setSubCategoryOptions([]);
+      onChange({ subCategory: [] }); // clear all if no main category
+      return;
+    }
+
+    const ids = value.mainCategory.map(c => c.id);
+    const { data, error } = await supabase
+      .from('sub_categories')
+      .select('id, category, parent_id')
+      .in('parent_id', ids);
+
+    if (!error && data) {
+      const newOptions = data.map(sc => ({ id: sc.id, name: sc.category, parent_id: sc.parent_id }));
+      setSubCategoryOptions(newOptions);
+
+      // filter selected subCategories -> only keep ones that belong to currently selected mainCategory ids
+      const filteredSubs = value.subCategory.filter(sc =>
+        ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
+      );
+
+      // update state if anything was removed
+      if (filteredSubs.length !== value.subCategory.length) {
+        onChange({ subCategory: filteredSubs });
       }
-      const ids = value.mainCategory.map(c => c.id);
-      const { data, error } = await supabase
-        .from('sub_categories')
-        .select('id, category, parent_id')
-        .in('parent_id', ids);
-      if (!error && data) {
-        setSubCategoryOptions(data.map(sc => ({ id: sc.id, name: sc.category })));
-      }
-    };
-    fetchSubCategories();
-  }, [value.mainCategory]);
+    }
+  };
+
+  fetchSubCategories();
+}, [value.mainCategory]);
+
 
   // fetch tags
   useEffect(() => {
@@ -121,23 +137,38 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   }, []);
 
   // fetch subTags when tags change
-  useEffect(() => {
-    const fetchSubTags = async () => {
-      if (!value.tags?.length) {
-        setSubTagsOptions([]);
-        return;
+useEffect(() => {
+  const fetchSubTags = async () => {
+    if (!value.tags?.length) {
+      setSubTagsOptions([]);
+      onChange({ subTags: [] }); // clear if no tags
+      return;
+    }
+
+    const ids = value.tags.map(t => t.id);
+    const { data, error } = await supabase
+      .from('sub_tags')
+      .select('id, category, parent_id')
+      .in('parent_id', ids);
+
+    if (!error && data) {
+      const newOptions = data.map(st => ({ id: st.id, name: st.category, parent_id: st.parent_id }));
+      setSubTagsOptions(newOptions);
+
+      // filter selected subTags -> keep only those that still belong to selected tags
+      const filteredSubs = value.subTags.filter(st =>
+        ids.includes((newOptions.find(o => o.id === st.id)?.parent_id) ?? -1)
+      );
+
+      if (filteredSubs.length !== value.subTags.length) {
+        onChange({ subTags: filteredSubs });
       }
-      const ids = value.tags.map(t => t.id);
-      const { data, error } = await supabase
-        .from('sub_tags')
-        .select('id, category, parent_id')
-        .in('parent_id', ids);
-      if (!error && data) {
-        setSubTagsOptions(data.map(st => ({ id: st.id, name: st.category })));
-      }
-    };
-    fetchSubTags();
-  }, [value.tags]);
+    }
+  };
+
+  fetchSubTags();
+}, [value.tags]);
+
 
   // additional rows
   const addNewServiceRow = () => {
@@ -263,7 +294,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               <MultiSelect
                 value={value.tags}
                 options={tagsOptions}
-                onChange={e => onChange({ tags: e.value, subTags: [] })}
+                onChange={e => onChange({ tags: e.value })}
                 optionLabel="name"
                 placeholder="Select tags"
                 display="chip"
