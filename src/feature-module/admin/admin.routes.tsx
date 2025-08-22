@@ -293,7 +293,7 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       role: ['A1','A2']
     },
   ];
-  console.log(userRole);
+  //console.log(userRole);
   return (
     <>
      <SessionProvider>

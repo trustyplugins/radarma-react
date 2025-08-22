@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams,useNavigate} from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../../../../supabaseClient";
 
 import ServiceInformation from "./serviceInformation";
@@ -8,7 +8,7 @@ import Location from "./location";
 import Gallery from "./gallery";
 import EditSeo from "./seo";
 // ---- same types you defined for AddService ----
-type AdditionalRow = { id: number; additionalService: string; price: number; duration: string,speciality:boolean };
+type AdditionalRow = { id: number; additionalService: string; price: number; duration: string, speciality: boolean };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 
@@ -35,7 +35,7 @@ type AvailabilityT = { all: Slot[]; perDay: PerDay };
 
 type LocationT = { address?: string; lat?: number; lng?: number };
 type GalleryT = { files: (File | { url: string })[] };
-type SeoT = { slug: string; metaTitle?: string; metaDescription?: string;metaKeywords?: string[]; };
+type SeoT = { slug: string; metaTitle?: string; metaDescription?: string; metaKeywords?: string[]; };
 
 type ServiceForm = {
   info: Info;
@@ -51,7 +51,26 @@ const EditService = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.phone) {
+        const dbMobile = session.user.phone.replace(/^\+?91/, '');
+        const { data, error } = await supabase
+          .from('rd_users')
+          .select('*')
+          .eq('mobile', dbMobile)
+          .single();
+        //console.log(data);
+        setUserRole(error ? null : data?.role || null);
+      } else {
+        //setProfile(null);
+      }
+    };
+    fetchUser();
+  }, []);
   // ---- Tab UI states ----
   const [PageChange, setPageChange] = useState<"information" | "booking" | "location" | "gallery" | "seo">("information");
 
@@ -118,7 +137,7 @@ const EditService = () => {
         availability: data.availability || { all: [], perDay: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [] } },
         location: { address: data.address, lat: data.lat, lng: data.lng },
         gallery: { files: (data.gallery_urls || []).map((url: string) => ({ url })) },
-        seo: { slug: data.slug, metaTitle: data.meta_title || "", metaDescription: data.meta_description || "",metaKeywords: data.meta_keywords || "" }
+        seo: { slug: data.slug, metaTitle: data.meta_title || "", metaDescription: data.meta_description || "", metaKeywords: data.meta_keywords || "" }
       };
       setForm(mapped);
       setLoading(false);
@@ -152,7 +171,7 @@ const EditService = () => {
       slug: form.seo.slug,
       meta_title: form.seo.metaTitle,
       meta_description: form.seo.metaDescription,
-      meta_keywords:form.seo.metaKeywords,
+      meta_keywords: form.seo.metaKeywords,
     };
 
     const { error } = await supabase
@@ -183,10 +202,29 @@ const EditService = () => {
         ) : PageChange === "location" ? (
           <Location value={form.location} onChange={(patch) => setForm(p => ({ ...p!, location: { ...p!.location, ...patch } }))} prevTab={() => setPageChange("booking")} nextTab={() => setPageChange("gallery")} />
         ) : PageChange === "gallery" ? (
-          <Gallery value={form.gallery} onChange={(updater) => setForm(p => ({ ...p!, gallery: updater(p!.gallery) }))} prevTab={() => setPageChange("location")} nextTab={() => setPageChange("seo")} />
+          //<Gallery value={form.gallery} onChange={(updater) => setForm(p => ({ ...p!, gallery: updater(p!.gallery) }))} prevTab={() => setPageChange("location")} nextTab={() => setPageChange("seo")} />
+          <Gallery
+            value={form.gallery}
+            onChange={(patch) =>
+              setForm((p) => ({...p!,gallery: { ...p!.gallery, ...patch },
+              }))
+            }
+            prevTab={() => setPageChange("location")}
+            nextTab={() => {
+              if (userRole === "A1") {
+                setPageChange("seo");
+              } else {
+                handleUpdate();
+              }
+            }}
+            saving={saving}
+            userRole={userRole}
+          />
+
         ) : (
+          userRole === "A1" && (
           <EditSeo value={form.seo} onChange={(patch) => setForm(p => ({ ...p!, seo: { ...p!.seo, ...patch } }))} prevTab={() => setPageChange("gallery")} onSave={handleUpdate} saving={saving} />
-        )}
+        ))}
       </div>
     </div>
   );

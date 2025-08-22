@@ -244,7 +244,7 @@ const AllService: React.FC = () => {
     <div className="page-wrapper page-settings">
       <div className="content">
         <div className="content-page-header content-page-headersplit">
-          <h5>All Services</h5>
+          <h5>All Listings</h5>
           <div className="list-btn">
             <ul>
               <li>
@@ -277,7 +277,7 @@ const AllService: React.FC = () => {
               <li>
                 <Link className="btn btn-primary" to="/services/add-service">
                   <i className="fa fa-plus me-2" />
-                  Create Services
+                  Create Listing
                 </Link>
               </li>
             </ul>

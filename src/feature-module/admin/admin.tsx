@@ -53,15 +53,12 @@ const Admin = () => {
   }, []);
   
   useEffect(() => {
-    console.log(window.location.pathname);
+    //console.log(window.location.pathname);
    // import("../../style/scss/main.scss");
     import("../../style/admin/css/admin.css");
-    // window.location.pathname.includes("/admin")
-    //   ? import("../../style/admin/css/admin.css")
-    //   : import("../../style/scss/main.scss");
   }, [location.pathname]);
 
-console.log(userRole);
+//console.log(userRole);
 
   return (
     <>

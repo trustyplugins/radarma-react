@@ -62,20 +62,22 @@ const AdminSignin = () => {
       // const phone = session.user.phone; // E.164 format e.g. "+91..."
       //console.log(session,phone);
       // 🔹 Link user_id in rd_users if not already set
+      console.log(phone);
       const { data: existingUser, error: fetchErr } = await supabase
         .from('rd_users')
         .select('id, user_id')
         .eq('mobile', phone)
         .limit(1)
         .single();
+        console.log(existingUser);
       if (fetchErr) {
         console.error('Error fetching user:', fetchErr);
       } else if (existingUser && !existingUser.user_id) {
-        const { error: updateErr } = await supabase
+        const { data: update,error: updateErr } = await supabase
           .from('rd_users')
           .update({ user_id: supabaseUserId })
           .eq('id', existingUser.id);
-
+console.log(update);
         if (updateErr) {
           console.error('Error updating user_id:', updateErr);
         }

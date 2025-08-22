@@ -10,13 +10,14 @@ type Props = {
   onChange: (updater: (g: G) => G) => void;
   prevTab: () => void;
   nextTab: () => void;
+  userRole: string; 
 };
 
 const ACCEPTED = ['image/jpeg', 'image/png'];
 const MAX_FILES = 12;         // tweak as needed
 const MAX_SIZE_MB = 8;        // tweak as needed
 
-const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
+const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab ,userRole}) => {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -181,7 +182,11 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
             <i className="fas fa-arrow-left" /> Prev
           </button>
           <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
-            Next <i className="fas fa-arrow-right" />
+          {userRole === "A1" && (
+           <> Next <i className="fas fa-arrow-right" /></>
+           )}
+           Save
+            
           </button>
         </div>
       </div>

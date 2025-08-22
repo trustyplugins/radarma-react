@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ServiceInformation from './serviceInformation';
 import Availability from './availability';
 import Location from './location';
 import Gallery from './gallery';
 import EditSeo from './seo';
 import supabase from '../../../../supabaseClient';
-import { useNavigate} from "react-router-dom";
-type AdditionalRow = { id: number; additionalService: string; price: number; duration: string,speciality:boolean };
+import { useNavigate } from "react-router-dom";
+
+type AdditionalRow = { id: number; additionalService: string; price: number; duration: string, speciality: boolean };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
@@ -67,7 +68,7 @@ const initialForm: AddServiceForm = {
     subTags: [],
     description: '',
     additionalEnabled: true,
-    additional: [{ id: 1, additionalService: '', price: 0, duration: '',speciality:false }],
+    additional: [{ id: 1, additionalService: '', price: 0, duration: '', speciality: false }],
     videoUrl: '',
   },
   availability: {
@@ -99,6 +100,26 @@ const AddService = () => {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session} } = await supabase.auth.getSession();
+      if (session?.user?.phone) {
+        const dbMobile = session.user.phone.replace(/^\+?91/, '');
+        const { data, error } = await supabase
+          .from('rd_users')
+          .select('*')
+          .eq('mobile', dbMobile)
+          .single();
+  //console.log(data);
+        setUserRole(error ? null : data?.role || null);
+      } else {
+        //setProfile(null);
+      }
+    };
+    fetchUser();
+  }, []);
   const availabilityTab = () => {
     setPageChange('booking');
     setTabChange1(true);
@@ -189,7 +210,7 @@ const AddService = () => {
     try {
       // validations
       if (!form.info.title?.trim()) throw new Error('Title is required.');
-      if (!form.seo.slug?.trim()) throw new Error('Slug is required.');
+      //if (!form.seo.slug?.trim()) throw new Error('Slug is required.');
 
       // Auth (recommended so RLS passes)
       const { data: { user }, error: userErr } = await supabase.auth.getUser();
@@ -265,6 +286,7 @@ const AddService = () => {
     }
   };
   //console.log(form);
+  console.log(userRole);
   return (
     <>
       <div className="page-wrapper">
@@ -274,12 +296,12 @@ const AddService = () => {
               <div className="progressbar-card">
                 <ul id="progress-head">
                   <li className="active">
-                    Add Services - Service Information
+                    Add Listing - Listing Information
                   </li>
-                  <li>Add Services - Availablity</li>
-                  <li>Add Services - Location</li>
-                  <li>Add Services - Gallery</li>
-                  <li>Add Services - SEO</li>
+                  <li>Add Listing - Availablity</li>
+                  <li>Add Listing - Location</li>
+                  <li>Add Listing - Gallery</li>
+                  <li>Add Listing - SEO</li>
                 </ul>
                 <ul id="progressbar">
                   <li className={TabChange ? 'active' : ''}>
@@ -322,6 +344,7 @@ const AddService = () => {
                       <h6>Gallery</h6>
                     </div>
                   </li>
+                  {userRole === "A1" && (
                   <li className={TabChange4 ? 'active' : ''}>
                     <div className="multi-step-icon">
                       <span>
@@ -332,6 +355,7 @@ const AddService = () => {
                       <h6>SEO</h6>
                     </div>
                   </li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -373,23 +397,36 @@ const AddService = () => {
                 />
 
               ) : PageChange === 'gallery' ? (
+                // <Gallery
+                //   value={form.gallery}                 // { files: (File | {url:string})[] }
+                //   onChange={(updater) => setForm(p => ({ ...p, gallery: updater(p.gallery) }))}
+                //   prevTab={locationTab}
+                //   nextTab={seoTab}
+                // />
                 <Gallery
-                  value={form.gallery}                 // { files: (File | {url:string})[] }
+                  value={form.gallery}
                   onChange={(updater) => setForm(p => ({ ...p, gallery: updater(p.gallery) }))}
                   prevTab={locationTab}
-                  nextTab={seoTab}
-                />
-
-              ) : (
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                <EditSeo
-                  value={form.seo}
-                  onChange={updateSeo}
-                  prevTab={galleryTab}
-                  onSave={handleSave}
+                  nextTab={() => {
+                    if (userRole === "A1") {
+                      seoTab(); // go to SEO step
+                    } else {
+                      handleSave(); // directly save after Gallery if Admin
+                    }
+                  }}
                   saving={saving}
+                  userRole={userRole}
                 />
+              ) : (
+                userRole === "A1" && (
+                  <EditSeo
+                    value={form.seo}
+                    onChange={updateSeo}
+                    prevTab={galleryTab}
+                    onSave={handleSave}
+                    saving={saving}
+                  />
+                )
 
               )}
             </div>
