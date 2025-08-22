@@ -1,132 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import * as Icon from 'react-feather';
 import { set_is_mobile_sidebar } from '../../../core/data/redux/action';
 import { useDispatch } from 'react-redux';
 import { all_routes } from '../../../core/data/routes/all_routes';
+import supabase from "../../../supabaseClient";
+
+type UserInfo = {
+  name: string | null;
+  email: string | null;
+  avatar?: string | null;
+  role?: string | null;
+};
 
 const AdminHeader = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      // Request fullscreen
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-      }
-    } else {
-      // Exit fullscreen
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-
-    // Toggle the state
-    setIsFullscreen(!isFullscreen);
-  };
-  // const mobileSidebar = useSelector((state : any) => state.mobileSidebar)
+  const [user, setUser] = useState<UserInfo | null>(null);
   const dispatch = useDispatch();
-  const routes = all_routes
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from("rd_users")
+        .select("name, email, role")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (!error && data) {
+        setUser({
+          name: data.name,
+          email: data.email,
+          role: data.role,
+        });
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // ... keep your fullscreen + sidebar logic
+
   return (
     <div className="admin-header">
-      <div className="header-left">
-        <Link to="index" className="logo">
-          <ImageWithBasePath
-            src="assets/img/logo.svg"
-            alt="Logo"
-            width={30}
-            height={30}
-          />
-        </Link>
-        <Link to="index" className=" logo-small">
-          <ImageWithBasePath
-            src="assets/admin/img/logo-small.svg"
-            alt="Logo"
-            width={30}
-            height={30}
-          />
-        </Link>
-      </div>
-      <Link
-        className="mobile_btn"
-        id="mobile_btn"
-        to="#"
-        onClick={() => {
-          dispatch(set_is_mobile_sidebar(true));
-        }}
-      >
-        <i className="fas fa-align-left" />
-      </Link>
-      <div className="header-split">
-        <div className="page-headers">
-          <div className="search-bar">
-            <span>
-              <Icon.Search className="react-feather-custom"></Icon.Search>
+      {/* left logo ... */}
+
+      <ul className="nav admin-user-menu">
+        <li className="nav-item dropdown">
+          <Link to="#" className="user-link nav-link" data-bs-toggle="dropdown">
+            <span className="user-img">
+              <ImageWithBasePath
+                className="rounded-circle"
+                src="assets/admin/img/user.jpg"
+                width={40}
+                alt="Admin"
+              />
+              <span className="animate-circle" />
             </span>
-            <input type="text" placeholder="Search" className="form-control" />
-          </div>
-        </div>
-        <ul className="nav admin-user-menu">
-          
-          {/* User Menu */}
-          <li className="nav-item dropdown">
-            <Link
-              to="#"
-              className="user-link  nav-link"
-              data-bs-toggle="dropdown"
-            >
-              <span className="user-img">
-                <ImageWithBasePath
-                  className="rounded-circle"
-                  src="assets/admin/img/user.jpg"
-                  width={40}
-                  alt="Admin"
-                />
-                <span className="animate-circle" />
+            <span className="user-content">
+              <span
+                className="user-name"
+                style={{ textTransform: "capitalize" }}
+              >
+                {user?.name || "Guest"}
               </span>
-              <span className="user-content">
-                <span className="user-name">John Smith</span>
-                <span className="user-details">Demo User</span>
+              <span className="user-details">
+                {user?.role === "A1"
+                  ? "Super Admin"
+                  : user?.role === "A2"
+                    ? "Admin"
+                    : "User"}
               </span>
-            </Link>
-            <div className="dropdown-menu menu-drop-user">
-              <div className="profilemenu ">
-                <div className="user-detials">
-                  <Link to="account">
-                    <span className="profile-image">
-                      <ImageWithBasePath
-                        src="assets/admin/img/user.jpg"
-                        alt="img"
-                        className="profilesidebar"
-                      />
-                    </span>
-                    <span className="profile-content">
-                      <span>John Smith</span>
-                      <span>John@example.com</span>
-                    </span>
-                  </Link>
-                </div>
-                <div className="subscription-menu">
-                  <ul>
-                    <li>
-                      <Link to="account-settings">Profile</Link>
-                    </li>
-                    <li>
-                      <Link to="localization">Settings</Link>
-                    </li>
-                  </ul>
-                </div>
-                <div className="subscription-logout">
-                  <Link to="logout">Log Out</Link>
-                </div>
+
+            </span>
+          </Link>
+          <div className="dropdown-menu menu-drop-user">
+            <div className="profilemenu">
+              <div className="user-detials">
+                <Link to="account">
+                  <span className="profile-content">
+                    <span>{user?.name}<br /></span>
+                    <span>{user?.email}</span>
+                  </span>
+                </Link>
+              </div>
+              <div className="subscription-logout">
+                <Link to="logout">Log Out</Link>
               </div>
             </div>
-          </li>
-          {/* /User Menu */}
-        </ul>
-      </div>
+          </div>
+        </li>
+      </ul>
     </div>
   );
 };
+
 
 export default AdminHeader;
