@@ -156,6 +156,7 @@ const CategoriesList = () => {
                                                         optionLabel="name"
                                                         placeholder="A - Z"
                                                         className="select admin-select-breadcrumb"
+
                                                     />
                                                 </div>
                                             </li>
@@ -183,7 +184,11 @@ const CategoriesList = () => {
                                     <DataTable
                                         value={categories}
                                         loading={loading}
-                                        showGridlines
+                                        paginator
+                                        rows={10}
+                                        rowsPerPageOptions={[5, 10, 25, 50]}
+                                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
+                                        currentPageReportTemplate="{first} to {last} of {totalRecords}"
                                         tableStyle={{ minWidth: '50rem' }}
                                     >
                                         <Column sortable field="id" header="ID"></Column>

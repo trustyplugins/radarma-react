@@ -175,35 +175,39 @@ const SortingTags = () => {
                     <div className="row">
                         <div className="col-12 ">
                             <div className="table-resposnive table-div">
-                            <table className="table datatable">
-                                <DataTable
-                                    value={categories}
-                                    loading={loading}
-                                    showGridlines
-                                    tableStyle={{ minWidth: '50rem' }}
-                                >
-                                    <Column sortable field="id" header="ID"></Column>
-                                    <Column
-                                        field="image_url"
-                                        header="Image"
-                                        body={(rowData) =>
-                                            rowData.image_url ? (
-                                                <img
-                                                    src={rowData.image_url}
-                                                    alt={rowData.category}
-                                                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-                                                />
-                                            ) : (
-                                                <span style={{ color: '#999' }}>No Image</span>
-                                            )
-                                        }
-                                    ></Column>
-                                    <Column sortable field="category" header="Categories"></Column>
-                                    <Column sortable field="category_slug" header="Categories Slug"></Column>
-                                    {/* <Column sortable field="created_at" header="Date"></Column> */}
-                                   <Column field="is_link" header="Link" body={renderFeaturedSwitch}></Column>
-                                    <Column header="Action" body={actionButton}></Column>
-                                </DataTable>
+                                <table className="table datatable">
+                                    <DataTable
+                                        value={categories}
+                                        loading={loading}
+                                        paginator
+                                        rows={10}
+                                        rowsPerPageOptions={[5, 10, 25, 50]}
+                                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
+                                        currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                                        tableStyle={{ minWidth: '50rem' }}
+                                    >
+                                        <Column sortable field="id" header="ID"></Column>
+                                        <Column
+                                            field="image_url"
+                                            header="Image"
+                                            body={(rowData) =>
+                                                rowData.image_url ? (
+                                                    <img
+                                                        src={rowData.image_url}
+                                                        alt={rowData.category}
+                                                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                                                    />
+                                                ) : (
+                                                    <span style={{ color: '#999' }}>No Image</span>
+                                                )
+                                            }
+                                        ></Column>
+                                        <Column sortable field="category" header="Categories"></Column>
+                                        <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                        {/* <Column sortable field="created_at" header="Date"></Column> */}
+                                        <Column field="is_link" header="Link" body={renderFeaturedSwitch}></Column>
+                                        <Column header="Action" body={actionButton}></Column>
+                                    </DataTable>
                                 </table>
                             </div>
                         </div>

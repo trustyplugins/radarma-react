@@ -167,7 +167,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
         <div className="sub-title"><h6>Service Information</h6></div>
         <div className="row">
           {/* Title */}
-          <div className="col-md-6">
+          <div className="col-md-12">
             <div className="form-group">
               <label>Title</label>
               <input
@@ -194,7 +194,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 }
                 options={masterOptions}
                 optionLabel="name"
-                placeholder="Select Master Category"
+                placeholder="Select City"
                 className="select w-100"
               />
             </div>
@@ -203,7 +203,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           {/* Categories */}
           <div className="col-md-6">
             <div className="form-group">
-              <label>Categories</label>
+              <label>Sector</label>
               <MultiSelect
                 value={value.category}
                 options={categoryOptions}
@@ -211,7 +211,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                   onChange({ category: e.value, subCategory: [] })
                 }
                 optionLabel="name"
-                placeholder="Select categories"
+                placeholder="Select sector"
                 display="chip"
                 filter
                 className="w-100"
@@ -239,7 +239,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           </div>
 
           {/* Sub Categories */}
-          <div className="col-md-12">
+          <div className="col-md-6">
             <div className="form-group">
               <label>Sub Categories</label>
               <MultiSelect
@@ -328,7 +328,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           <div className="addservice-info">
             {(value.additional || []).map(row => (
               <div key={row.id} className="row service-cont">
-                <div className="col-md-3">
+                <div className="col-md-4">
                   <div className="form-group">
                     <label>Additional Service</label>
                     <input
@@ -340,7 +340,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-4">
                   <div className="form-group">
                     <label>Price</label>
                     <input
@@ -352,7 +352,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-3">
+                {/* <div className="col-md-3">
                   <div className="form-group">
                     <label>Duration <span>Include tax</span></label>
                     <input
@@ -363,8 +363,8 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                       onChange={e => handleRowChange(row.id, e)}
                     />
                   </div>
-                </div>
-                <div className="col-md-3">
+                </div> */}
+                <div className="col-md-2">
                   <div className="form-group special">
                     <label>Speciality</label>
                     <InputSwitch
@@ -381,10 +381,10 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
 
                 {row.id > 1 && (
-                  <div className="col-md-1">
+                  <div className="col-md-2">
                     <button
                       onClick={() => deleteServiceRow(row.id)}
-                      className="btn btn-danger-outline delete-icon"
+                      className="btn btn-danger-outline"
                       type="button"
                     >
                       <Icon.Trash2 className="react-feather-custom trashicon" />
