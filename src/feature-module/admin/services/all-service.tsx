@@ -224,17 +224,17 @@ const AllService: React.FC = () => {
 
   const renderActions = (res: ListingRow) => (
     <div className="action-language">
-      <Link className="table-edit" to={`/listings/view-listing/${res.id}`}>
+      {/* <Link className="table-edit" to={`/listings/view-listing/${res.id}`}>
         <i className="fa-regular fa-pen-to-square"></i>
         <span>View</span>
-      </Link>
-      <Link className="table-edit" to={`/services/edit-service/${res.id}`}>
+      </Link> */}
+      <Link className="table-edit" style={{width:'auto'}} to={`/services/edit-service/${res.id}`}>
         <i className="fa-regular fa-pen-to-square"></i>
-        <span>Edit</span>
+        {/* <span>Edit</span> */}
       </Link>
-      <button className="table-delete" onClick={() => onDelete(res.id)}>
+      <button className="table-delete" style={{width:'auto'}} onClick={() => onDelete(res.id)}>
         <i className="fa-solid fa-trash-can"></i>
-        <span>Delete</span>
+        {/* <span>Delete</span> */}
       </button>
     </div>
   );
@@ -323,13 +323,13 @@ const AllService: React.FC = () => {
                   currentPageReportTemplate="{first} to {last} of {totalRecords}"
                   tableStyle={{ minWidth: '60rem' }}
                 >
-                  <Column field="title" header="Service" sortable body={renderService} />
-                  <Column field="city" header="City" sortable />
-                  <Column field="sector" header="Sector(s)" sortable />
-                  <Column field="main_category" header="Main Category(ies)" sortable />
-                  <Column field="sub_category" header="Sub Category(ies)" sortable />
+                  <Column field="title" header="Title" sortable body={renderService} />
+                  {/* <Column field="city" header="City" sortable /> */}
+                  <Column field="sector" header="Sector" sortable />
+                  <Column field="main_category" header="Main Category" sortable />
+                  {/* <Column field="sub_category" header="Sub Category(ies)" sortable />
                   <Column field="tags" header="Tags" sortable />
-                  <Column field="sub_tags" header="Sub Tags" sortable />
+                  <Column field="sub_tags" header="Sub Tags" sortable /> */}
                   <Column field="status" header="Status" sortable body={renderStatus} />
                   {/* <Column field="user_id" header="Created By" body={renderOwner} /> */}
                   <Column header="Action" body={renderActions} />
