@@ -47,7 +47,34 @@ const AdminHeader = () => {
   return (
     <div className="admin-header">
       {/* left logo ... */}
-
+      <div className="header-left">
+        <Link to="#" className="logo">
+          <ImageWithBasePath
+            src="assets/img/logo.svg"
+            alt="Logo"
+            width={30}
+            height={30}
+          />
+        </Link>
+        <Link to="#" className=" logo-small">
+          <ImageWithBasePath
+            src="assets/admin/img/logo-small.svg"
+            alt="Logo"
+            width={30}
+            height={30}
+          />
+        </Link>
+      </div>
+      <Link
+        className="mobile_btn"
+        id="mobile_btn"
+        to="#"
+        onClick={() => {
+          dispatch(set_is_mobile_sidebar(true));
+        }}
+      >
+        <i className="fas fa-align-left" />
+      </Link>
       <ul className="nav admin-user-menu">
         <li className="nav-item dropdown">
           <Link to="#" className="user-link nav-link" data-bs-toggle="dropdown">

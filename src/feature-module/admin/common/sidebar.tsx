@@ -4,8 +4,7 @@ import { Scrollbars } from 'react-custom-scrollbars-2';
 import * as Icon from 'react-feather';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  set_mouseoversidebar_data,
-  set_toggleSidebar_data_2,
+  set_is_mobile_sidebar, 
 } from '../../../core/data/redux/action';
 import { all_routes } from '../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
@@ -15,11 +14,9 @@ import { AppState, SideBarData } from '../../../core/models/interface';
 
 const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
   const routes = all_routes;
-  const toggle_data = useSelector((state: AppState) => state.mouseOverSidebar);
-  const toggle_data2 = useSelector((state: AppState) => state.toggleSidebar2);
-  const dispatch = useDispatch();
+  const mobileSidebar = useSelector((state: AppState) => state.mobileSidebar);
   const [sidebarData, setSidebarData] = useState(adminSidebar2);
-
+  const dispatch = useDispatch();
   // Set sidebar data based on role
   useEffect(() => {
     if (!userRole) return;
@@ -29,14 +26,6 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
       setSidebarData(adminSidebar2);
     }
   }, [userRole]);
-
-  const toggle = () => {
-    dispatch(set_toggleSidebar_data_2(!toggle_data2));
-  };
-
-  const toogle = () => {
-    dispatch(set_mouseoversidebar_data(!toggle_data));
-  };
 
   const location = useLocation();
 
@@ -63,11 +52,16 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
   };
 
   return (
+    <>
+    {mobileSidebar && (
+      <div
+        className="sidebar-overlay header-overlay opened"
+        onClick={() => dispatch(set_is_mobile_sidebar(false))}
+      />
+    )}
     <div
-      className="admin-sidebar"
+      className={`admin-sidebar ${mobileSidebar ? "active" : ""}`}
       id="sidebar"
-      //onMouseEnter={toogle}
-      //onMouseLeave={toogle}
     >
       <div className="admin-sidebar-header">
         <div className="admin-sidebar-logo">
@@ -158,7 +152,9 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
         </Scrollbars>
       </div>
     </div>
+    </>
   );
+  
 };
 
 export default AdminSidebar;

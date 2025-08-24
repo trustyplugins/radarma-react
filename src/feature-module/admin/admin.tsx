@@ -76,10 +76,10 @@ const Admin = () => {
         )}
          <AdminRoutes userRole={userRole} /> 
       </div>
-      <div
+      {/* <div
         className={`sidebar-overlay header-overlay ${mobileMenu ? 'opened' : ''} ${toggle_data ? 'opened' : ''} ${mobileSidebar ? 'opened' : ''}`}
         onClick={() => dispatch(set_toggleSidebar_data(false))}
-      ></div>
+      ></div> */}
     </div>
   </>
 )}
