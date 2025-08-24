@@ -41,6 +41,7 @@ import { SessionProvider } from './SessionContext';
 import SortingTags from './categories/sorting-tags';
 import SubTags from './categories/sub-tags';
 import EditService from './services/edit-service';
+import ViewService from './view-service/view-service';
 const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
   const all_admin_routes = [
     {
@@ -210,6 +211,13 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       path: '/services/edit-service/:id',
       name: 'edit-services',
       element: <EditService />,
+      route: Route,
+      role:['A1','A2']
+    },
+    {
+      path: '/listings/view-listing/:id',
+      name: 'view-listing',
+      element: <ViewService />,
       route: Route,
       role:['A1','A2']
     },

@@ -19,7 +19,7 @@ type TagOption = { id: number; name: string };
 
 export type ServiceInformationValue = {
   title: string;
-  masterCategory: Option | null;
+  masterCategory: Option[];
   category: Option[];
   mainCategory: Option[];
   subCategory: Option[];
@@ -59,6 +59,38 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchMasterCategories();
   }, []);
 
+   // fetch categories when masterCategory changes
+  //  useEffect(() => {
+  //   const fetchCategories = async () => {
+  //     if (!value.masterCategory?.length) {
+  //       setCategoryOptions([]);
+  //       onChange({ category: [] }); // clear if no cities
+  //       return;
+  //     }
+
+  //     const ids = value.masterCategory.map(c => c.id);
+  //     const { data, error } = await supabase
+  //       .from('sectors')
+  //       .select('id, category, parent_id')
+  //       .in('parent_id', ids);
+
+  //     if (!error && data) {
+  //       const newOptions = data.map(c => ({ id: c.id, name: c.category, parent_id: c.parent_id }));
+  //       setCategoryOptions(newOptions);
+
+  //       // filter existing category selections to only those belonging to selected city ids
+  //       const filtered = value.category.filter(c =>
+  //         ids.includes((newOptions.find(o => o.id === c.id)?.parent_id) ?? -1)
+  //       );
+
+  //       if (filtered.length !== value.category.length) {
+  //         onChange({ category: filtered });
+  //       }
+  //     }
+  //   };
+
+  //   fetchCategories();
+  // }, [value.masterCategory]);
   // fetch categories when masterCategory changes
   useEffect(() => {
     const fetchCategories = async () => {
@@ -90,39 +122,39 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchMainCategories();
   }, []);
 
-// fetch subcategories when mainCategory changes
-useEffect(() => {
-  const fetchSubCategories = async () => {
-    if (!value.mainCategory?.length) {
-      setSubCategoryOptions([]);
-      onChange({ subCategory: [] }); // clear all if no main category
-      return;
-    }
-
-    const ids = value.mainCategory.map(c => c.id);
-    const { data, error } = await supabase
-      .from('sub_categories')
-      .select('id, category, parent_id')
-      .in('parent_id', ids);
-
-    if (!error && data) {
-      const newOptions = data.map(sc => ({ id: sc.id, name: sc.category, parent_id: sc.parent_id }));
-      setSubCategoryOptions(newOptions);
-
-      // filter selected subCategories -> only keep ones that belong to currently selected mainCategory ids
-      const filteredSubs = value.subCategory.filter(sc =>
-        ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
-      );
-
-      // update state if anything was removed
-      if (filteredSubs.length !== value.subCategory.length) {
-        onChange({ subCategory: filteredSubs });
+  // fetch subcategories when mainCategory changes
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!value.mainCategory?.length) {
+        setSubCategoryOptions([]);
+        onChange({ subCategory: [] }); // clear all if no main category
+        return;
       }
-    }
-  };
 
-  fetchSubCategories();
-}, [value.mainCategory]);
+      const ids = value.mainCategory.map(c => c.id);
+      const { data, error } = await supabase
+        .from('sub_categories')
+        .select('id, category, parent_id')
+        .in('parent_id', ids);
+
+      if (!error && data) {
+        const newOptions = data.map(sc => ({ id: sc.id, name: sc.category, parent_id: sc.parent_id }));
+        setSubCategoryOptions(newOptions);
+
+        // filter selected subCategories -> only keep ones that belong to currently selected mainCategory ids
+        const filteredSubs = value.subCategory.filter(sc =>
+          ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
+        );
+
+        // update state if anything was removed
+        if (filteredSubs.length !== value.subCategory.length) {
+          onChange({ subCategory: filteredSubs });
+        }
+      }
+    };
+
+    fetchSubCategories();
+  }, [value.mainCategory]);
 
 
   // fetch tags
@@ -137,37 +169,37 @@ useEffect(() => {
   }, []);
 
   // fetch subTags when tags change
-useEffect(() => {
-  const fetchSubTags = async () => {
-    if (!value.tags?.length) {
-      setSubTagsOptions([]);
-      onChange({ subTags: [] }); // clear if no tags
-      return;
-    }
-
-    const ids = value.tags.map(t => t.id);
-    const { data, error } = await supabase
-      .from('sub_tags')
-      .select('id, category, parent_id')
-      .in('parent_id', ids);
-
-    if (!error && data) {
-      const newOptions = data.map(st => ({ id: st.id, name: st.category, parent_id: st.parent_id }));
-      setSubTagsOptions(newOptions);
-
-      // filter selected subTags -> keep only those that still belong to selected tags
-      const filteredSubs = value.subTags.filter(st =>
-        ids.includes((newOptions.find(o => o.id === st.id)?.parent_id) ?? -1)
-      );
-
-      if (filteredSubs.length !== value.subTags.length) {
-        onChange({ subTags: filteredSubs });
+  useEffect(() => {
+    const fetchSubTags = async () => {
+      if (!value.tags?.length) {
+        setSubTagsOptions([]);
+        onChange({ subTags: [] }); // clear if no tags
+        return;
       }
-    }
-  };
 
-  fetchSubTags();
-}, [value.tags]);
+      const ids = value.tags.map(t => t.id);
+      const { data, error } = await supabase
+        .from('sub_tags')
+        .select('id, category, parent_id')
+        .in('parent_id', ids);
+
+      if (!error && data) {
+        const newOptions = data.map(st => ({ id: st.id, name: st.category, parent_id: st.parent_id }));
+        setSubTagsOptions(newOptions);
+
+        // filter selected subTags -> keep only those that still belong to selected tags
+        const filteredSubs = value.subTags.filter(st =>
+          ids.includes((newOptions.find(o => o.id === st.id)?.parent_id) ?? -1)
+        );
+
+        if (filteredSubs.length !== value.subTags.length) {
+          onChange({ subTags: filteredSubs });
+        }
+      }
+    };
+
+    fetchSubTags();
+  }, [value.tags]);
 
 
   // additional rows

@@ -185,7 +185,7 @@ const AllService: React.FC = () => {
   const renderService = (res: ListingRow) => {
     const cover = res.gallery_urls?.[0];
     return (
-      <Link to="#" className="table-imgname" onClick={(e) => e.preventDefault()}>
+      <Link to={`/listings/view-listing/${res.id}`} className="table-imgname">
         {cover ? (
           <img
             src={cover}
@@ -224,6 +224,10 @@ const AllService: React.FC = () => {
 
   const renderActions = (res: ListingRow) => (
     <div className="action-language">
+      <Link className="table-edit" to={`/listings/view-listing/${res.id}`}>
+        <i className="fa-regular fa-pen-to-square"></i>
+        <span>View</span>
+      </Link>
       <Link className="table-edit" to={`/services/edit-service/${res.id}`}>
         <i className="fa-regular fa-pen-to-square"></i>
         <span>Edit</span>

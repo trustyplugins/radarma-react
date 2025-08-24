@@ -185,7 +185,10 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab ,userRole}
           {userRole === "A1" && (
            <> Next <i className="fas fa-arrow-right" /></>
            )}
-           Save
+           {userRole === "A2" && (
+           <> Save</>
+           )}
+           
             
           </button>
         </div>

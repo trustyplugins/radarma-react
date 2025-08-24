@@ -262,7 +262,7 @@ export const all_routes = {
   subTags:'/sorting-tags/sub-tags',
   addPages:'/pages/add-page',
   EditPages:'/edit-page',
-  viewService:'/view-service',
+  viewService:'/view-listing',
   permissions:'/permissions',
   offer:'/marketing/offer',
   adminNotification:'/setting/notification',
