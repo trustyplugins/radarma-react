@@ -109,7 +109,7 @@ const AdminHeader = () => {
               <div className="user-detials">
                 <Link to="account">
                   <span className="profile-content">
-                    <span>{user?.name}<br /></span>
+                    <span style={{textTransform:'capitalize'}}>{user?.name}<br /></span>
                     <span>{user?.email}</span>
                   </span>
                 </Link>
