@@ -123,7 +123,7 @@ const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
             <div className="form-group">
               <label>Address</label>
               {isLoaded ? (
-                <Autocomplete onLoad={(ac) => (autoRef.current = ac)} onPlaceChanged={onAddressPlaceChanged}>
+                <Autocomplete onLoad={(ac) => {autoRef.current = ac;ac.setComponentRestrictions({ country: "in" });}} onPlaceChanged={onAddressPlaceChanged}>
                   <input
                     type="text"
                     className="form-control"
