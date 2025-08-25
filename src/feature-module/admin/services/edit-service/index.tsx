@@ -14,7 +14,7 @@ type TagOption = { id: number; name: string };
 
 type Info = {
   title: string;
-  masterCategory: Option | null;
+  masterCategory:Option[];
   category: Option[];
   mainCategory: Option[];
   subCategory: Option[];
@@ -98,8 +98,8 @@ const EditService = () => {
         subTagsRes,
       ] = await Promise.all([
         data.city_id
-          ? supabase.from("cities").select("id, category").eq("id", data.city_id).single()
-          : Promise.resolve({ data: null }),
+          ? supabase.from("cities").select("id, category").in("id", data.city_id)
+          : Promise.resolve({ data: [] }),
         data.sector_ids?.length
           ? supabase.from("sectors").select("id, category").in("id", data.sector_ids)
           : Promise.resolve({ data: [] }),
@@ -121,9 +121,7 @@ const EditService = () => {
       const mapped: ServiceForm = {
         info: {
           title: data.title,
-          masterCategory: cityRes.data
-            ? { id: cityRes.data.id, name: cityRes.data.category }
-            : null,
+          masterCategory: cityRes.data?.map((c) => ({ id: c.id, name: c.category })) || [],
           category: sectorsRes.data?.map((c) => ({ id: c.id, name: c.category })) || [],
           mainCategory: mainCatsRes.data?.map((c) => ({ id: c.id, name: c.category })) || [],
           subCategory: subCatsRes.data?.map((c) => ({ id: c.id, name: c.category })) || [],

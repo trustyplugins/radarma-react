@@ -12,7 +12,7 @@ type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
   title: string;
-  masterCategory: Option | null;   // city in UI
+  masterCategory: Option[];   // city in UI
   category: Option[];              // sectors (multi)
   mainCategory: Option[];          // main categories (multi)
   subCategory: Option[];           // sub categories (multi)
@@ -60,7 +60,7 @@ const emptySlot: Slot = { id: 1, from: '00:00:00', to: '00:00:00', slots: '' };
 const initialForm: AddServiceForm = {
   info: {
     title: '',
-    masterCategory: null,
+    masterCategory: [],
     category: [],
     mainCategory: [],
     subCategory: [],
@@ -238,7 +238,7 @@ const AddService = () => {
         title: form.info.title,
         description: form.info.description || null,
         // store NAMES to match your current TEXT columns
-        city_id: form.info.masterCategory?.id ?? null,
+        city_id: form.info.masterCategory.map(o => o.id),
         sector_ids: form.info.category.map(o => o.id),
         main_category_ids: form.info.mainCategory.map(o => o.id),
         sub_category_ids: form.info.subCategory.map(o => o.id),

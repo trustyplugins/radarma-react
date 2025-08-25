@@ -59,55 +59,45 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchMasterCategories();
   }, []);
 
-   // fetch categories when masterCategory changes
-  //  useEffect(() => {
-  //   const fetchCategories = async () => {
-  //     if (!value.masterCategory?.length) {
-  //       setCategoryOptions([]);
-  //       onChange({ category: [] }); // clear if no cities
-  //       return;
-  //     }
-
-  //     const ids = value.masterCategory.map(c => c.id);
-  //     const { data, error } = await supabase
-  //       .from('sectors')
-  //       .select('id, category, parent_id')
-  //       .in('parent_id', ids);
-
-  //     if (!error && data) {
-  //       const newOptions = data.map(c => ({ id: c.id, name: c.category, parent_id: c.parent_id }));
-  //       setCategoryOptions(newOptions);
-
-  //       // filter existing category selections to only those belonging to selected city ids
-  //       const filtered = value.category.filter(c =>
-  //         ids.includes((newOptions.find(o => o.id === c.id)?.parent_id) ?? -1)
-  //       );
-
-  //       if (filtered.length !== value.category.length) {
-  //         onChange({ category: filtered });
-  //       }
-  //     }
-  //   };
-
-  //   fetchCategories();
-  // }, [value.masterCategory]);
+  // fetch categories when masterCategory changes
   // fetch categories when masterCategory changes
   useEffect(() => {
     const fetchCategories = async () => {
-      if (!value.masterCategory) {
+      if (!value.masterCategory?.length) {
         setCategoryOptions([]);
+        onChange({ category: [] });
         return;
       }
+
+      const ids = value.masterCategory.map(c => c.id);
       const { data, error } = await supabase
         .from('sectors')
-        .select('id, category')
-        .eq('parent_id', value.masterCategory.id);
+        .select('id, category, parent_id')
+        .in('parent_id', ids);
+
       if (!error && data) {
-        setCategoryOptions(data.map(c => ({ id: c.id, name: c.category })));
+        const newOptions = data.map(c => ({
+          id: c.id,
+          name: c.category,
+          parent_id: c.parent_id,
+        }));
+        setCategoryOptions(newOptions);
+
+        // filter existing category selections -> only keep valid ones
+        const filtered = value.category.filter(c =>
+          ids.includes((c as any).parent_id)
+        );
+
+        if (filtered.length !== value.category.length) {
+          onChange({ category: filtered });
+        }
       }
     };
+
     fetchCategories();
   }, [value.masterCategory]);
+
+
 
   // fetch main Categories
   useEffect(() => {
@@ -243,25 +233,37 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           </div>
 
           {/* Master Category (City) */}
+          {/* Master Category (City) */}
           <div className="col-md-6">
             <div className="form-group">
-              <label>City</label>
-              <Dropdown
+              <label>Cities</label>
+              <MultiSelect
                 value={value.masterCategory}
-                onChange={e =>
-                  onChange({
-                    masterCategory: e.value,
-                    category: [],
-                    subCategory: [],
-                  })
-                }
                 options={masterOptions}
+                onChange={e => {
+                  const selectedCities = e.value;
+                  const selectedCityIds = selectedCities.map((c: Option) => c.id);
+
+                  // keep only sectors whose parent_id still matches one of the selected cities
+                  const filteredCategories = value.category.filter(
+                    (c: any) => selectedCityIds.includes((c as any).parent_id)
+                  );
+
+                  onChange({
+                    masterCategory: selectedCities,
+                    category: filteredCategories,
+                  });
+                }}
                 optionLabel="name"
-                placeholder="Select City"
-                className="select w-100"
+                placeholder="Select Cities"
+                display="chip"
+                filter
+                className="w-100"
               />
+
             </div>
           </div>
+
 
           {/* Categories */}
           <div className="col-md-6">
