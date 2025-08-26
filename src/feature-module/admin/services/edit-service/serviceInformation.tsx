@@ -8,11 +8,12 @@ import { MultiSelect } from 'primereact/multiselect';
 import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
-  additionalService: string;
+  additionalService: number | null; // store tag ID instead of name
   price: number;
   duration: string;
   speciality: boolean;
 };
+
 
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
@@ -58,38 +59,38 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     };
     fetchMasterCategories();
   }, []);
- 
-// fetch subcategories when mainCategory changes
-useEffect(() => {
-  const fetchCategories = async () => {
-    if (!value.masterCategory?.length) {
-      setCategoryOptions([]);
-      onChange({ category: [] }); // clear all if no main category
-      return;
-    }
 
-    const ids = value.masterCategory.map(c => c.id);
-    const { data, error } = await supabase
-      .from('sectors')
-      .select('id, category, parent_id')
-      .in('parent_id', ids);
-
-    if (!error && data) {
-      const newOptions = data.map(sc => ({ id: sc.id, name: sc.category, parent_id: sc.parent_id }));
-      setCategoryOptions(newOptions);
-      const filtered = value.category.filter(sc =>
-        ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
-      );
-
-      // update state if anything was removed
-      if (filtered.length !== value.category.length) {
-        onChange({ category: filtered });
+  // fetch subcategories when mainCategory changes
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!value.masterCategory?.length) {
+        setCategoryOptions([]);
+        onChange({ category: [] }); // clear all if no main category
+        return;
       }
-    }
-  };
 
-  fetchCategories();
-}, [value.masterCategory]);
+      const ids = value.masterCategory.map(c => c.id);
+      const { data, error } = await supabase
+        .from('sectors')
+        .select('id, category, parent_id')
+        .in('parent_id', ids);
+
+      if (!error && data) {
+        const newOptions = data.map(sc => ({ id: sc.id, name: sc.category, parent_id: sc.parent_id }));
+        setCategoryOptions(newOptions);
+        const filtered = value.category.filter(sc =>
+          ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
+        );
+
+        // update state if anything was removed
+        if (filtered.length !== value.category.length) {
+          onChange({ category: filtered });
+        }
+      }
+    };
+
+    fetchCategories();
+  }, [value.masterCategory]);
 
   // fetch main Categories
   useEffect(() => {
@@ -231,15 +232,15 @@ useEffect(() => {
               <MultiSelect
                 value={value.masterCategory}
                 options={masterOptions}
-                onChange={e => onChange({masterCategory: e.value})}
+                onChange={e => onChange({ masterCategory: e.value })}
                 optionLabel="name"
                 placeholder="Select Cities"
                 display="chip"
                 filter
                 className="w-100"
-                //disabled={!value.category?.length}
+              //disabled={!value.category?.length}
               />
- 
+
             </div>
           </div>
 
@@ -369,72 +370,70 @@ useEffect(() => {
         {value.additionalEnabled && (
           <div className="addservice-info">
             {(value.additional || []).map(row => (
-              <div key={row.id} className="row service-cont">
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Additional Service</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="additionalService"
-                      value={row.additionalService}
-                      onChange={e => handleRowChange(row.id, e)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="price"
-                      value={row.price}
-                      onChange={e => handleRowChange(row.id, e)}
-                    />
-                  </div>
-                </div>
-                {/* <div className="col-md-3">
-                  <div className="form-group">
-                    <label>Duration <span>Include tax</span></label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="duration"
-                      value={row.duration}
-                      onChange={e => handleRowChange(row.id, e)}
-                    />
-                  </div>
-                </div> */}
-                <div className="col-md-2">
-                  <div className="form-group special">
-                    <label>Speciality</label>
-                    <InputSwitch
-                      checked={row.speciality}
-                      onChange={(e) => {
-                        const next = (value.additional || []).map(r =>
-                          r.id === row.id ? { ...r, speciality: e.value } : r
-                        );
-                        onChange({ additional: next });
-                      }}
-                    />
-                  </div>
-                </div>
+  <div key={row.id} className="row service-cont">
+    <div className="col-md-4">
+      <div className="form-group">
+        <label>Additional Service</label>
+        <Dropdown
+          value={tagsOptions.find(t => t.id === row.additionalService) || null}
+          options={tagsOptions}
+          onChange={(e) => {
+            const next = (value.additional || []).map(r =>
+              r.id === row.id ? { ...r, additionalService: e.value?.id || null } : r
+            );
+            onChange({ additional: next });
+          }}
+          optionLabel="name"
+          placeholder="Select service"
+          showClear
+          filter
+          className="w-100"
+        />
+      </div>
+    </div>
 
+    <div className="col-md-4">
+      <div className="form-group">
+        <label>Price</label>
+        <input
+          type="number"
+          className="form-control"
+          name="price"
+          value={row.price}
+          onChange={e => handleRowChange(row.id, e)}
+        />
+      </div>
+    </div>
 
-                {row.id > 1 && (
-                  <div className="col-md-2">
-                    <button
-                      onClick={() => deleteServiceRow(row.id)}
-                      className="btn btn-danger-outline"
-                      type="button"
-                    >
-                      <Icon.Trash2 className="react-feather-custom trashicon" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+    <div className="col-md-2">
+      <div className="form-group special">
+        <label>Speciality</label>
+        <InputSwitch
+          checked={row.speciality}
+          onChange={(e) => {
+            const next = (value.additional || []).map(r =>
+              r.id === row.id ? { ...r, speciality: e.value } : r
+            );
+            onChange({ additional: next });
+          }}
+        />
+      </div>
+    </div>
+
+    {row.id > 1 && (
+      <div className="col-md-2">
+        <button
+          onClick={() => deleteServiceRow(row.id)}
+          className="btn btn-danger-outline"
+          type="button"
+        >
+          <Icon.Trash2 className="react-feather-custom trashicon" />
+        </button>
+      </div>
+    )}
+  </div>
+))}
+
           </div>
         )}
 

@@ -8,11 +8,13 @@ import { MultiSelect } from 'primereact/multiselect';
 import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
-  additionalService: string;
+  additionalService: number | null; // store tag ID here
   price: number;
   duration: string;
   speciality: boolean;
 };
+
+
 
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
@@ -45,6 +47,9 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [subCategoryOptions, setSubCategoryOptions] = useState<Option[]>([]);
   const [tagsOptions, setTagsOptions] = useState<TagOption[]>([]);
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
+  const [addTagsOptions, addSetTagsOptions] = useState<TagOption[]>([]);
+
+  // tagsOptions = [{ id: 1, name: "Plumber" }, ...]
 
   // fetch master categories
   useEffect(() => {
@@ -153,6 +158,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
       const { data, error } = await supabase.from('tags').select('id, category');
       if (!error && data) {
         setTagsOptions(data.map(t => ({ id: t.id, name: t.category })));
+        addSetTagsOptions(data.map(t => ({ id: t.id, name: t.category })));
       }
     };
     fetchTags();
@@ -396,13 +402,25 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 <div className="col-md-4">
                   <div className="form-group">
                     <label>Additional Service</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="additionalService"
-                      value={row.additionalService}
-                      onChange={e => handleRowChange(row.id, e)}
+                    <Dropdown
+                      value={tagsOptions.find(t => t.id === row.additionalService) || null}
+                      options={tagsOptions}
+                      onChange={(e) => {
+                        const next = (value.additional || []).map(r =>
+                          r.id === row.id
+                            ? { ...r, additionalService: e.value ? e.value.id : null } // save ID instead of name
+                            : r
+                        );
+                        onChange({ additional: next });
+                      }}
+                      optionLabel="name"
+                      placeholder="Select service"
+                      showClear
+                      filter
+                      className="w-100"
                     />
+
+
                   </div>
                 </div>
                 <div className="col-md-4">

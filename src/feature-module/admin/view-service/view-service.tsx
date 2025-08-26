@@ -143,6 +143,27 @@ const ViewService = () => {
             .single();
           provider = data;
         }
+        // 9. Fetch additional services tag info
+        let additionalWithNames: any[] = [];
+        if (listing.additional?.length) {
+          const ids = listing.additional.map((a: any) => a.additionalService).filter(Boolean);
+
+          if (ids.length) {
+            const { data: tagData } = await supabase
+              .from("tags")
+              .select("id, category")
+              .in("id", ids);
+
+            // attach names back to additional services
+            additionalWithNames = listing.additional.map((a: any) => {
+              const tag = tagData?.find(t => t.id === a.additionalService);
+              return {
+                ...a,
+                additionalServiceName: tag ? tag.category : a.additionalService, // fallback to id
+              };
+            });
+          }
+        }
 
         // Combine into one object
         setService({
@@ -154,6 +175,7 @@ const ViewService = () => {
           tags,
           subTags,
           provider,
+          additional: additionalWithNames,
         });
       } catch (err) {
         console.error("Error fetching service:", err);
@@ -260,22 +282,21 @@ const ViewService = () => {
                   <div className="package-widget pack-service">
                     <h5>Additional Service</h5>
                     <ul>
-                      {service?.
-                        additional?.map((tag: any, idx: number) => (
-                          <li key={idx}>
-                            <div className="add-serving">
-                              <div className="add-serv-item">
-                                <div className="add-serv-info">
-                                  <h6>{tag.additionalService}</h6>
-                                </div>
+                      {service?.additional?.map((row: any, idx: number) => (
+                        <li key={idx}>
+                          <div className="add-serving">
+                            <div className="add-serv-item">
+                              <div className="add-serv-info">
+                                <h6>{row.additionalServiceName}</h6>
                               </div>
                             </div>
-                            <div className="add-serv-amt">
-                              <h6>{tag.price}</h6>
-                            </div>
+                          </div>
+                          <div className="add-serv-amt">
+                            <h6>₹{row.price}</h6>
+                          </div>
+                        </li>
+                      ))}
 
-                          </li>
-                        ))}
 
                     </ul>
                   </div>
