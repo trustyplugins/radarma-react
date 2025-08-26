@@ -13,12 +13,8 @@ type AdditionalRow = {
   duration: string;
   speciality: boolean;
 };
-
-
-
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
-
 export type ServiceInformationValue = {
   title: string;
   masterCategory: Option[];
@@ -204,7 +200,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: '', price: 0, duration: '', speciality: false },
+        { id: newId, additionalService: null, price: 0, duration: '', speciality: false },
       ],
     });
   };
@@ -246,28 +242,14 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               <MultiSelect
                 value={value.masterCategory}
                 options={masterOptions}
-                onChange={e => {
-                  const selectedCities = e.value;
-                  const selectedCityIds = selectedCities.map((c: Option) => c.id);
-
-                  // keep only sectors whose parent_id still matches one of the selected cities
-                  const filteredCategories = value.category.filter(
-                    (c: any) => selectedCityIds.includes((c as any).parent_id)
-                  );
-
-                  onChange({
-                    masterCategory: selectedCities,
-                    category: filteredCategories,
-                  });
-                }}
+                onChange={e =>onChange({masterCategory: e.value})}
                 optionLabel="name"
                 placeholder="Select Cities"
                 display="chip"
                 filter
                 className="w-100"
               />
-
-            </div>
+              </div>
           </div>
 
 

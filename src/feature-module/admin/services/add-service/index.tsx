@@ -7,7 +7,7 @@ import EditSeo from './seo';
 import supabase from '../../../../supabaseClient';
 import { useNavigate } from "react-router-dom";
 
-type AdditionalRow = { id: number; additionalService: string; price: number; duration: string, speciality: boolean };
+type AdditionalRow = { id: number; additionalService: number | null; price: number; duration: string, speciality: boolean };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
@@ -68,7 +68,7 @@ const initialForm: AddServiceForm = {
     subTags: [],
     description: '',
     additionalEnabled: true,
-    additional: [{ id: 1, additionalService: '', price: 0, duration: '', speciality: false }],
+    additional: [{ id: 1, additionalService: null, price: 0, duration: '', speciality: false }],
     videoUrl: '',
   },
   availability: {
@@ -285,8 +285,8 @@ const AddService = () => {
       setSaving(false);
     }
   };
-  //console.log(form);
-  console.log(userRole);
+  console.log(form);
+  //console.log(userRole);
   return (
     <>
       <div className="page-wrapper">

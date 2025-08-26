@@ -8,7 +8,7 @@ import Location from "./location";
 import Gallery from "./gallery";
 import EditSeo from "./seo";
 // ---- same types you defined for AddService ----
-type AdditionalRow = { id: number; additionalService: string; price: number; duration: string, speciality: boolean };
+type AdditionalRow = { id: number; additionalService: number | null; price: number; duration: string, speciality: boolean };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 
@@ -152,7 +152,7 @@ const EditService = () => {
     const payload = {
       title: form.info.title,
       description: form.info.description,
-      city_id: form.info.masterCategory?.id ?? null,
+      city_id: form.info.masterCategory.map(c => c.id),
       sector_ids: form.info.category.map(c => c.id),
       main_category_ids: form.info.mainCategory.map(c => c.id),
       sub_category_ids: form.info.subCategory.map(c => c.id),

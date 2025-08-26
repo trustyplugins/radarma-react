@@ -191,7 +191,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: '', price: 0, duration: '', speciality: false },
+        { id: newId, additionalService: null, price: 0, duration: '', speciality: false },
       ],
     });
   };

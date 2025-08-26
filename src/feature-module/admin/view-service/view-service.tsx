@@ -78,9 +78,8 @@ const ViewService = () => {
           const { data } = await supabase
             .from("cities")
             .select("id, category")
-            .eq("id", listing.city_id)
-            .single();
-          city = data;
+            .in("id", listing.city_id);
+          city = data || [];
         }
 
         // 3. Fetch sectors
@@ -195,9 +194,9 @@ const ViewService = () => {
               <div className="serv-profile">
                 <h2 style={{ textTransform: 'capitalize' }}>{service?.title}</h2>
                 <ul>
-
-                  <li><span className="badge">{service?.city?.category}</span></li>
-
+                  {service?.city?.map((tag: any, idx: number) => (
+                    <li key={idx}><span className="badge">{tag.category}</span></li>
+                  ))}
                   {service?.sectors?.map((tag: any, idx: number) => (
                     <li key={idx}><span className="badge">{tag.category}</span></li>
                   ))}
@@ -218,7 +217,6 @@ const ViewService = () => {
                       <li key={idx}><span className="badge">{tag.category}</span></li>
                     ))}
                 </ul>
-
               </div>
 
               <div className="service-images big-gallery">
