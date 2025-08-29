@@ -213,7 +213,7 @@ const MainCategoryList = () => {
                         rowData.main_categories?.category ? rowData.main_categories.category : <span style={{ color: '#999' }}>No Parent</span>
                       }
                     />
-                    <Column sortable field="category" header="Categories"></Column>
+                    <Column sortable field="category" header="Sub Category"></Column>
                     <Column sortable field="category_slug" header="Slug"></Column>
                     {/* <Column sortable field="created_at" header="Date"></Column> */}
                     {/* <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column> */}

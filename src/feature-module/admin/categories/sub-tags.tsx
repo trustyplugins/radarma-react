@@ -210,8 +210,14 @@ const SubTags = () => {
                                             )
                                         }
                                     ></Column>
-                                    <Column sortable field="category" header="Categories"></Column>
-                                    <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                     <Column
+                      header="Tag"
+                      body={(rowData) =>
+                        rowData.tags?.category ? rowData.tags.category : <span style={{ color: '#999' }}>No Parent</span>
+                      }
+                    />
+                                    <Column sortable field="category" header="Sub Tag"></Column>
+                                    <Column sortable field="category_slug" header="Slug"></Column>
                                     {/* <Column sortable field="created_at" header="Date"></Column> */}
                                     {/* <Column field="featured" header="Featured" body={renderFeaturedSwitch}></Column> */}
                                     <Column header="Action" body={actionButton}></Column>

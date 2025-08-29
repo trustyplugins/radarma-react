@@ -202,8 +202,8 @@ const SortingTags = () => {
                                                 )
                                             }
                                         ></Column>
-                                        <Column sortable field="category" header="Categories"></Column>
-                                        <Column sortable field="category_slug" header="Categories Slug"></Column>
+                                        <Column sortable field="category" header="Tag"></Column>
+                                        <Column sortable field="category_slug" header="Slug"></Column>
                                         {/* <Column sortable field="created_at" header="Date"></Column> */}
                                         <Column field="is_link" header="Link" body={renderFeaturedSwitch}></Column>
                                         <Column header="Action" body={actionButton}></Column>
