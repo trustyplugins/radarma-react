@@ -188,7 +188,7 @@ const SubTags = () => {
                                     value={categories}
                                     loading={loading}
                                     paginator
-                                    rows={10}
+                                    rows={50}
                                     rowsPerPageOptions={[5, 10, 25, 50]}
                                     paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                                     currentPageReportTemplate="{first} to {last} of {totalRecords}"

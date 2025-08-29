@@ -30,8 +30,8 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
   const [featured, setFeatured] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [removeImage, setRemoveImage] = useState(false);
 
-  
 
   // --- When editing, populate fields ---
   useEffect(() => {
@@ -40,6 +40,7 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
       setSlug(categoryData.category_slug || '');
       setPreviewUrl(categoryData.image_url || '');
       setFeatured(!!categoryData.featured);
+      setRemoveImage(false);
       // setMasterId(categoryData.master_id || null);
       // setParentId(categoryData.parent_id || null);
     } else {
@@ -48,6 +49,7 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
       setImageFile(null);
       setPreviewUrl('');
       setFeatured(false);
+      setRemoveImage(false);
       // setMasterId(null);
       // setParentId(null);
     }
@@ -61,7 +63,12 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
       setPreviewUrl(URL.createObjectURL(file)); // preview
     }
   };
-
+  // NEW: Remove image handler
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setRemoveImage(true);
+  };
   // --- Upload to Supabase ---
   const uploadImage = async (): Promise<string> => {
     if (!imageFile) return previewUrl; // no new image
@@ -125,7 +132,7 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
               ></button>
             </div>
             <div className="modal-body">
-             
+
 
               {/* Subcategory Name */}
               <div className="mb-3">
@@ -159,10 +166,23 @@ const MainCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                      <>
+                        <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                        <div className="d-flex gap-2 mb-2" style={{ justifyContent: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={handleRemoveImage}
+                            aria-label="Remove current image"
+                          >
+                            Remove image
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <ImageWithBasePath src="assets/img/icons/upload-icon.svg" alt="img" />
                     )}
+
                     <div className="file-browse">
                       <h6>Drag &amp; drop image or </h6>
                       <div className="file-browse-path">

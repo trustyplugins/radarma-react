@@ -30,7 +30,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
   const [previewUrl, setPreviewUrl] = useState('');
   const [parentCategories, setParentCategories] = useState<any[]>([]);
   const [parentId, setParentId] = useState<number | null>(null);
-
+  const [removeImage, setRemoveImage] = useState(false);
   // Fetch master categories for dropdown
   const fetchParentCategories = async () => {
     const { data, error } = await supabase
@@ -56,6 +56,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
       setFeatured(!!categoryData.featured);
       // setMasterId(categoryData.master_id || null);
       setParentId(categoryData.parent_id || null);
+      setRemoveImage(false);
     } else {
       setCategory('');
       setSlug('');
@@ -64,6 +65,7 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
       setFeatured(false);
       // setMasterId(null);
       setParentId(null);
+      setRemoveImage(false);
     }
   }, [categoryData]);
 
@@ -75,7 +77,12 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
       setPreviewUrl(URL.createObjectURL(file)); // preview
     }
   };
-
+  // NEW: Remove image handler
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setRemoveImage(true);
+  };
   // --- Upload to Supabase ---
   const uploadImage = async (): Promise<string> => {
     if (!imageFile) return previewUrl; // no new image
@@ -186,10 +193,23 @@ const SubCategoriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate })
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                      <>
+                        <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                        <div className="d-flex gap-2 mb-2" style={{ justifyContent: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={handleRemoveImage}
+                            aria-label="Remove current image"
+                          >
+                            Remove image
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <ImageWithBasePath src="assets/img/icons/upload-icon.svg" alt="img" />
                     )}
+
                     <div className="file-browse">
                       <h6>Drag &amp; drop image or </h6>
                       <div className="file-browse-path">

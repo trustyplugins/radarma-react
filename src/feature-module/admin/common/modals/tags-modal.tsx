@@ -5,8 +5,8 @@ import supabase from '../../../../supabaseClient'; // adjust path
 
 interface Props {
   categoryData?: any; // null for Add, object for Edit
-  onSave: (category: string, slug: string, imageUrl: string,featured: boolean) => void;
-  onUpdate: (id: number, category: string, slug: string, imageUrl: string ,featured: boolean) => void;
+  onSave: (category: string, slug: string, imageUrl: string, featured: boolean) => void;
+  onUpdate: (id: number, category: string, slug: string, imageUrl: string, featured: boolean) => void;
 }
 
 const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
@@ -15,19 +15,21 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
   const [featured, setFeatured] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
-
+  const [removeImage, setRemoveImage] = useState(false);
   useEffect(() => {
     if (categoryData) {
       setCategory(categoryData.category || '');
       setSlug(categoryData.category_slug || '');
       setPreviewUrl(categoryData.image_url || ''); // existing image if editing
       setFeatured(!!categoryData.is_link);
+      setRemoveImage(false);
     } else {
       setCategory('');
       setSlug('');
       setImageFile(null);
       setPreviewUrl('');
       setFeatured(false);
+      setRemoveImage(false);
     }
   }, [categoryData]);
 
@@ -38,7 +40,12 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
       setPreviewUrl(URL.createObjectURL(file)); // preview
     }
   };
-
+  // NEW: Remove image handler
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setRemoveImage(true);
+  };
   const uploadImage = async (): Promise<string> => {
     if (!imageFile) return previewUrl; // no new image
     const fileName = `${Date.now()}-${imageFile.name}`;
@@ -65,9 +72,9 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
     const uploadedImageUrl = await uploadImage();
 
     if (categoryData?.id) {
-      onUpdate(categoryData.id, category, slug, uploadedImageUrl,featured);
+      onUpdate(categoryData.id, category, slug, uploadedImageUrl, featured);
     } else {
-      onSave(category, slug, uploadedImageUrl,featured);
+      onSave(category, slug, uploadedImageUrl, featured);
     }
 
     // Close modal manually
@@ -124,10 +131,23 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                      <>
+                        <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                        <div className="d-flex gap-2 mb-2" style={{ justifyContent: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={handleRemoveImage}
+                            aria-label="Remove current image"
+                          >
+                            Remove image
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <ImageWithBasePath src="assets/img/icons/upload-icon.svg" alt="img" />
                     )}
+
                     <div className="file-browse">
                       <h6>Drag &amp; drop image or </h6>
                       <div className="file-browse-path">

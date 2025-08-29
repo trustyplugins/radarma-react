@@ -5,8 +5,8 @@ import supabase from '../../../../supabaseClient'; // adjust path
 
 interface Props {
   categoryData?: any; // null for Add, object for Edit
-  onSave: (category: string, slug: string, imageUrl: string,featured: boolean,parentId: number | null) => void;
-  onUpdate: (id: number, category: string, slug: string, imageUrl: string ,featured: boolean,parentId: number | null) => void;
+  onSave: (category: string, slug: string, imageUrl: string, featured: boolean, parentId: number | null) => void;
+  onUpdate: (id: number, category: string, slug: string, imageUrl: string, featured: boolean, parentId: number | null) => void;
 }
 
 const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
@@ -17,6 +17,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
   const [previewUrl, setPreviewUrl] = useState('');
   const [parentCategories, setParentCategories] = useState<any[]>([]);
   const [parentId, setParentId] = useState<number | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   // Fetch master categories for dropdown
   const fetchParentCategories = async () => {
     const { data, error } = await supabase
@@ -40,6 +41,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
       setPreviewUrl(categoryData.image_url || ''); // existing image if editing
       setFeatured(!!categoryData.featured);
       setParentId(categoryData.parent_id || null);
+      setRemoveImage(false);
     } else {
       setCategory('');
       setSlug('');
@@ -47,6 +49,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
       setPreviewUrl('');
       setFeatured(false);
       setParentId(null);
+      setRemoveImage(false);
     }
   }, [categoryData]);
 
@@ -57,7 +60,12 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
       setPreviewUrl(URL.createObjectURL(file)); // preview
     }
   };
-
+  // NEW: Remove image handler
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setRemoveImage(true);
+  };
   const uploadImage = async (): Promise<string> => {
     if (!imageFile) return previewUrl; // no new image
     const fileName = `${Date.now()}-${imageFile.name}`;
@@ -84,9 +92,9 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
     const uploadedImageUrl = await uploadImage();
 
     if (categoryData?.id) {
-      onUpdate(categoryData.id, category, slug, uploadedImageUrl,featured,parentId);
+      onUpdate(categoryData.id, category, slug, uploadedImageUrl, featured, parentId);
     } else {
-      onSave(category, slug, uploadedImageUrl,featured,parentId);
+      onSave(category, slug, uploadedImageUrl, featured, parentId);
     }
 
     // Close modal manually
@@ -111,7 +119,7 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
               ></button>
             </div>
             <div className="modal-body">
-            <div className="mb-3">
+              <div className="mb-3">
                 <label className="form-label">City</label>
                 <select
                   className="form-select"
@@ -158,10 +166,23 @@ const CatogriesModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => 
                 <div className="form-uploads">
                   <div className="form-uploads-path">
                     {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                      <>
+                        <img src={previewUrl} alt="Preview" className="img-thumbnail mb-2" width={100} />
+                        <div className="d-flex gap-2 mb-2" style={{ justifyContent: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={handleRemoveImage}
+                            aria-label="Remove current image"
+                          >
+                            Remove image
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <ImageWithBasePath src="assets/img/icons/upload-icon.svg" alt="img" />
                     )}
+
                     <div className="file-browse">
                       <h6>Drag &amp; drop image or </h6>
                       <div className="file-browse-path">
