@@ -7,7 +7,7 @@ import EditSeo from './seo';
 import supabase from '../../../../supabaseClient';
 import { useNavigate } from "react-router-dom";
 
-type AdditionalRow = { id: number; additionalService: number | null; price: number; duration: string, speciality: boolean };
+type AdditionalRow = { id: number; additionalService: number | null; price: number; duration: string, speciality: boolean, image?: string | null; };
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
@@ -22,6 +22,12 @@ type Info = {
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl: string;
+  accessibility: string | null;
+  payment_options: string | null;
+  service_mode: string | null;
+  price_range: string | null;
+  quality: string | null;
+  sp_niche: string | null;
 };
 
 
@@ -68,8 +74,14 @@ const initialForm: AddServiceForm = {
     subTags: [],
     description: '',
     additionalEnabled: true,
-    additional: [{ id: 1, additionalService: null, price: 0, duration: '', speciality: false }],
+    additional: [{ id: 1, additionalService: null, price: 0, duration: '', speciality: false, image: null }],
     videoUrl: '',
+    accessibility: null,
+    payment_options: null,
+    service_mode: null,
+    price_range: null,
+    quality: null,
+    sp_niche: null,
   },
   availability: {
     all: [{ ...emptySlot }],
@@ -104,7 +116,7 @@ const AddService = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session} } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.phone) {
         const dbMobile = session.user.phone.replace(/^\+?91/, '');
         const { data, error } = await supabase
@@ -112,7 +124,7 @@ const AddService = () => {
           .select('*')
           .eq('mobile', dbMobile)
           .single();
-  //console.log(data);
+        //console.log(data);
         setUserRole(error ? null : data?.role || null);
       } else {
         //setProfile(null);
@@ -200,6 +212,27 @@ const AddService = () => {
     }
     return urls;
   }
+  async function uploadServiceImages(additional: AdditionalRow[]): Promise<AdditionalRow[]> {
+    const updated = [];
+    for (const row of additional) {
+      if (row.image && row.image.startsWith("data:")) {
+        // convert base64 to file
+        const res = await fetch(row.image);
+        const blob = await res.blob();
+        const ext = blob.type.split("/")[1] || "png";
+        const path = `services/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("Service Gallery")
+          .upload(path, blob, { cacheControl: "3600", upsert: false });
+        if (error) throw error;
+        const { data } = supabase.storage.from("Service Gallery").getPublicUrl(path);
+        updated.push({ ...row, image: data.publicUrl });
+      } else {
+        updated.push(row);
+      }
+    }
+    return updated;
+  }
 
 
   // ---- final save (called from SEO step) ----
@@ -219,7 +252,7 @@ const AddService = () => {
 
       // upload gallery
       const galleryUrls = await uploadGalleryFiles(form.gallery.files);
-
+      const additionalWithUrls = await uploadServiceImages(form.info.additional);
       // normalize availability: copy "all" to any empty day
       const fillAvailability = () => {
         const all = form.availability.all ?? [];
@@ -242,10 +275,12 @@ const AddService = () => {
         sector_ids: form.info.category.map(o => o.id),
         main_category_ids: form.info.mainCategory.map(o => o.id),
         sub_category_ids: form.info.subCategory.map(o => o.id),
-        tag_ids: form.info.tags.map(o => o.id),
-        sub_tag_ids: form.info.subTags.map(o => o.id),
+        //tag_ids: form.info.tags.map(o => o.id),
+        // sub_tag_ids: form.info.subTags.map(o => o.id),
         additional_enabled: !!form.info.additionalEnabled,
-        additional: form.info.additional?.length ? form.info.additional : [],
+        //additional: form.info.additional?.length ? form.info.additional : [],
+        // 👇 now includes uploaded image URLs
+        additional: additionalWithUrls,
         video_url: form.info.videoUrl || null,
         // price: form.info.price ?? null,
         // availability
@@ -266,6 +301,15 @@ const AddService = () => {
         meta_keywords: form.seo.metaKeywords ?? [],
 
         status: 'draft',
+        // 🆕 NEW: Extra details stored in JSON
+        extra_details: {
+          accessibility: form.info.accessibility ?? null,
+          payment_options: form.info.payment_options ?? null,
+          service_mode: form.info.service_mode ?? null,
+          price_range: form.info.price_range ?? null,
+          quality: form.info.quality ?? null,
+          sp_niche: form.info.sp_niche ?? null,
+        }
       };
 
 
@@ -345,16 +389,16 @@ const AddService = () => {
                     </div>
                   </li>
                   {userRole === "A1" && (
-                  <li className={TabChange4 ? 'active' : ''}>
-                    <div className="multi-step-icon">
-                      <span>
-                        <i className="far fa-chart-bar" />
-                      </span>
-                    </div>
-                    <div className="multi-step-info">
-                      <h6>SEO</h6>
-                    </div>
-                  </li>
+                    <li className={TabChange4 ? 'active' : ''}>
+                      <div className="multi-step-icon">
+                        <span>
+                          <i className="far fa-chart-bar" />
+                        </span>
+                      </div>
+                      <div className="multi-step-info">
+                        <h6>SEO</h6>
+                      </div>
+                    </li>
                   )}
                 </ul>
               </div>

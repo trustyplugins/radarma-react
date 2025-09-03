@@ -9,12 +9,17 @@ import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
   additionalService: number | null; // store tag ID here
+  subServices: number[];
   price: number;
   duration: string;
   speciality: boolean;
+  image?: string | null;
 };
+
+
 type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
+
 export type ServiceInformationValue = {
   title: string;
   masterCategory: Option[];
@@ -27,6 +32,12 @@ export type ServiceInformationValue = {
   videoUrl?: string;
   tags: TagOption[];
   subTags: TagOption[];
+  accessibility?: "Wheelchair Accessible" | "Senior Friendly" | null;
+  payment_options?: "Cash Accepted" | null;
+  service_mode?: "Walk-ins Allowed" | null;
+  price_range?: "Budget" | null;
+  quality?: "Premium" | null;
+  sp_niche?: "Limited Edition" | null;
 };
 
 type Props = {
@@ -44,7 +55,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [tagsOptions, setTagsOptions] = useState<TagOption[]>([]);
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
   const [addTagsOptions, addSetTagsOptions] = useState<TagOption[]>([]);
-
+  const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
   // tagsOptions = [{ id: 1, name: "Plumber" }, ...]
 
   // fetch master categories
@@ -193,14 +204,35 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchSubTags();
   }, [value.tags]);
 
+  useEffect(() => {
+    const fetchForRows = async () => {
+      for (const row of value.additional || []) {
+        const tagId = row.additionalService;
+        if (tagId && !subTagsByTag[tagId]) {
+          const { data, error } = await supabase
+            .from("sub_tags")
+            .select("id, category, parent_id")
+            .eq("parent_id", tagId);
 
+          if (!error && data) {
+            setSubTagsByTag((prev) => ({
+              ...prev,
+              [tagId]: data.map((st) => ({ id: st.id, name: st.category })),
+            }));
+          }
+        }
+      }
+    };
+
+    fetchForRows();
+  }, [value.additional]);
   // additional rows
   const addNewServiceRow = () => {
     const newId = (value.additional?.length || 0) + 1;
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: null, price: 0, duration: '', speciality: false },
+        { id: newId, additionalService: null, subServices: [], price: 0, duration: '', speciality: false },
       ],
     });
   };
@@ -242,14 +274,14 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               <MultiSelect
                 value={value.masterCategory}
                 options={masterOptions}
-                onChange={e =>onChange({masterCategory: e.value})}
+                onChange={e => onChange({ masterCategory: e.value })}
                 optionLabel="name"
                 placeholder="Select Cities"
                 display="chip"
                 filter
                 className="w-100"
               />
-              </div>
+            </div>
           </div>
 
 
@@ -310,13 +342,13 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           </div>
 
           {/* Tags */}
-          <div className="col-md-12">
+          {/* <div className="col-md-12">
             <div className="form-group">
               <label>Tags</label>
               <MultiSelect
                 value={value.tags}
                 options={tagsOptions}
-                onChange={e => onChange({ tags: e.value })}
+                onChange={ e => onChange({ tags: e.value })}
                 optionLabel="name"
                 placeholder="Select tags"
                 display="chip"
@@ -324,10 +356,10 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 className="w-100"
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Sub Tags */}
-          <div className="col-md-12">
+          {/* <div className="col-md-12">
             <div className="form-group">
               <label>Sub Tags</label>
               <MultiSelect
@@ -342,18 +374,10 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 disabled={!value.tags?.length}
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Description */}
-          <div className="col-md-12">
-            <div className="form-group service-editor">
-              <label>Description</label>
-              <DefaultEditor
-                value={value.description}
-                onChange={(e: any) => onChange({ description: e.target.value })}
-              />
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -362,7 +386,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
         <div className="row">
           <div className="col-sm-12">
             <div className="additional">
-              <div className="sub-title Service"><h6>Additional Service</h6></div>
+              <div className="sub-title Service"><h6>Services</h6></div>
               <div className="status-toggle float-sm-end mb-3">
                 <input
                   type="checkbox"
@@ -378,97 +402,352 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
         </div>
 
         {value.additionalEnabled && (
+
           <div className="addservice-info">
-            {(value.additional || []).map(row => (
-              <div key={row.id} className="row service-cont">
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Additional Service</label>
-                    <Dropdown
-                      value={tagsOptions.find(t => t.id === row.additionalService) || null}
-                      options={tagsOptions}
-                      onChange={(e) => {
-                        const next = (value.additional || []).map(r =>
-                          r.id === row.id
-                            ? { ...r, additionalService: e.value ? e.value.id : null } // save ID instead of name
-                            : r
-                        );
-                        onChange({ additional: next });
-                      }}
-                      optionLabel="name"
-                      placeholder="Select service"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
+            {(value.additional || []).map(row => {
+              const availableSubTags = row.additionalService
+                ? subTagsByTag[row.additionalService] || []
+                : [];
+              // find sub tags that belong to the chosen tag for this row
+              return (
+                <div key={row.id} className="row service-cont" style={{ backgroundColor: '#f7f7f7', marginBottom: '10px', padding: '10px', borderRadius: '4px' }}>
+                  {/* Tags Dropdown */}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Services</label>
+                      <Dropdown
+                        value={tagsOptions.find(t => t.id === row.additionalService) || null}
+                        options={tagsOptions}
+                        onChange={(e) => {
+                          const next = (value.additional || []).map(r =>
+                            r.id === row.id
+                              ? { ...r, additionalService: e.value ? e.value.id : null, subServices: [] }
+                              : r
+                          );
+                          onChange({ additional: next });
+                        }}
+                        optionLabel="name"
+                        placeholder="Select service"
+                        showClear
+                        filter
+                        className="w-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sub Tags MultiSelect */}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Sub Services</label>
+                      <Dropdown
+                        value={row.subServices?.[0] ?? null} // pick the first if array stored
+                        options={availableSubTags}
+                        optionLabel="name"
+                        optionValue="id"
+                        onChange={(e) => {
+                          const next = (value.additional || []).map(r =>
+                            r.id === row.id ? { ...r, subServices: e.value ? [e.value] : [] } : r
+                          );
+                          onChange({ additional: next });
+                        }}
+                        placeholder="Select sub service"
+                        showClear
+                        filter
+                        className="w-100"
+                        disabled={!row.additionalService}
+                      />
+
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="col-md-3">
+                    <div className="form-group">
+                      <label>Price</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="price"
+                        value={row.price}
+                        onChange={e => handleRowChange(row.id, e)}
+                      />
+                    </div>
+                  </div>
 
 
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label>Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="price"
-                      value={row.price}
-                      onChange={e => handleRowChange(row.id, e)}
-                    />
-                  </div>
-                </div>
-                {/* <div className="col-md-3">
-                  <div className="form-group">
-                    <label>Duration <span>Include tax</span></label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="duration"
-                      value={row.duration}
-                      onChange={e => handleRowChange(row.id, e)}
-                    />
-                  </div>
-                </div> */}
-                <div className="col-md-2">
-                  <div className="form-group special">
-                    <label>Speciality</label>
-                    <InputSwitch
-                      checked={row.speciality}
-                      onChange={(e) => {
-                        const next = (value.additional || []).map(r =>
-                          r.id === row.id ? { ...r, speciality: e.value } : r
-                        );
-                        onChange({ additional: next });
-                      }}
-                    />
-                  </div>
-                </div>
+                  {/* Service Image Upload */}
+                  <div className="col-md-3">
+                    <div className="form-group">
+                      <label>Service Image</label>
+                      {!row.image ? (
+                        <>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="form-control"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
 
-
-                {row.id > 1 && (
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                const next = (value.additional || []).map(r =>
+                                  r.id === row.id ? { ...r, image: reader.result as string } : r
+                                );
+                                onChange({ additional: next });
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <div className="image-preview-wrapper">
+                          <img
+                            src={row.image}
+                            alt="Service"
+                            className="img-thumbnail mb-2"
+                            style={{ maxWidth: "100px", display: "block" }}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger"
+                            onClick={() => {
+                              const next = (value.additional || []).map(r =>
+                                r.id === row.id ? { ...r, image: null } : r
+                              );
+                              onChange({ additional: next });
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Speciality */}
                   <div className="col-md-2">
-                    <button
-                      onClick={() => deleteServiceRow(row.id)}
-                      className="btn btn-danger-outline"
-                      type="button"
-                    >
-                      <Icon.Trash2 className="react-feather-custom trashicon" />
-                    </button>
+                    <div className="form-group special">
+                      <label>Speciality</label>
+                      <InputSwitch
+                        checked={row.speciality}
+                        onChange={(e) => {
+                          const next = (value.additional || []).map(r =>
+                            r.id === row.id ? { ...r, speciality: e.value } : r
+                          );
+                          onChange({ additional: next });
+                        }}
+                      />
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  {/* Delete Row */}
+                  {row.id > 1 && (
+                    <div className="col-md-1">
+                      <button
+                        onClick={() => deleteServiceRow(row.id)}
+                        className="btn btn-danger-outline"
+                        type="button"
+                      >
+                        <Icon.Trash2 className="react-feather-custom trashicon" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
           </div>
         )}
 
         {value.additionalEnabled && (
           <Link to="#" className="link-sets add-extra" onClick={addNewServiceRow}>
             <i className="fa fa-plus-circle me-2" aria-hidden="true" />
-            Add Additional Service
+            Add Service
           </Link>
         )}
       </div>
 
+      <div className="container-service extra-servcie">
+        <div className="row">
+          <div className="col-sm-12">
+            <div className="extra-dtl">
+              <div className="sub-title Service"><h6>Extra Details</h6></div>
+            </div>
+            <div className="row">
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Accessibility</label>
+                    <Dropdown
+                      value={value.accessibility ?? null}
+                      options={[
+                        { label: "Wheelchair Accessible", value: "wheelchair-accessible" },
+                        { label: "Senior Friendly", value: "senior-friendly" },
+                        { label: "Kids Friendly", value: "kids-friendly" },
+                        { label: "Pet Friendly", value: "pet-friendly" },
+                        { label: "Family Friendly", value: "family-friendly" },
+                        { label: "Sector Parking Available", value: "sector-parking-available" },
+                        { label: "Paid Parking", value: "paid-parking" },
+                        { label: "Street Parking", value: "street-parking" },
+                        { label: "Ramp Available", value: "ramp-available" },
+                        { label: "Lift / Elevator Available", value: "lift-elevator-available" },
+                        { label: "Easy Entry", value: "easy-entry" },
+                        { label: "Near Market", value: "near-market" },
+                        { label: "Late Night Open", value: "late-night-open" },
+                      ]}
+                      onChange={(e) => onChange({ accessibility: e.value })}
+                      placeholder="Select Accessibility"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Payment Options</label>
+                    <Dropdown
+                      value={value.payment_options ?? null}
+                      options={[
+                        { label: "Cash Accepted", value: "cash-accepted" },
+                        { label: "Credit / Debit Card Accepted", value: "card-accepted" },
+                        { label: "UPI / Paytm / Google Pay", value: "upi-payments" },
+                        { label: "Mobile Wallets", value: "mobile-wallets" },
+                        { label: "EMI Available", value: "emi-available" },
+                      ]}
+                      onChange={(e) => onChange({ payment_options: e.value })}
+                      placeholder="Select Payment Options"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Service Mode / Availability</label>
+                    <Dropdown
+                      value={value.service_mode ?? null}
+                      options={[
+                        { label: "Walk-ins Allowed", value: "walkins-allowed" },
+                        { label: "Appointment Required", value: "appointment-required" },
+                        { label: "Online Booking", value: "online-booking" },
+                        { label: "Pickup/Takeaway", value: "pickup-takeaway" },
+                        { label: "Home Delivery", value: "home-delivery" },
+                        { label: "Dine-in / On-Site Service", value: "dinein-onsite" },
+                        { label: "On Call", value: "on-call" },
+                        { label: "Same-Day Service", value: "same-day-service" },
+                        { label: "Doorstep Service", value: "doorstep-service" },
+                        { label: "Late Night Food", value: "late-night-food" },
+                      ]}
+                      onChange={(e) => onChange({ service_mode: e.value })}
+                      placeholder="Select Service Mode"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Price range</label>
+                    <Dropdown
+                      value={value.price_range ?? null}
+                      options={[
+                        { label: "Budget", value: "Budget" },
+                        { label: "Mid-range", value: "mid-range" },
+                        { label: "Premium / Luxury", value: "premium-Luxury" },
+                      ]}
+                      onChange={(e) => onChange({ price_range: e.value })}
+                      placeholder="Select Price Range"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Quality / Authenticity</label>
+                    <Dropdown
+                      value={value.quality ?? null}
+                      options={[
+                        { label: "Premium", value: "premium" },
+                        { label: "Branded", value: "branded" },
+                        { label: "Handmade", value: "handmade" },
+                        { label: "Locally Sourced", value: "locally-sourced" },
+                        { label: "Verified", value: "verified" },
+                        { label: "Hygienic / Safe", value: "hygienic-safe" },
+                        { label: "Homemade", value: "homemade" },
+                        { label: "Organic", value: "organic" },
+                        { label: "Eco-Friendly", value: "eco-friendly" },
+                        { label: "Authentic / Traditional", value: "authentic-traditional" },
+                        { label: "Limited Edition", value: "limited-edition" },
+                        { label: "Customizable", value: "customizable" },
+                        { label: "Fresh", value: "fresh" },
+                      ]}
+                      onChange={(e) => onChange({ quality: e.value })}
+                      placeholder="Select Quality / Authenticity"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-sm-6">
+                <div className="video-link">
+                  <div className="form-group">
+                    <label>Specialty / Niche</label>
+                    <Dropdown
+                      value={value.sp_niche ?? null}
+                      options={[
+                        { label: "Limited Edition", value: "limited-edition" },
+                        { label: "Seasonal", value: "seasonal" },
+                        { label: "Unique Products", value: "unique-products" },
+                        { label: "Rare Finds", value: "rare-finds" }
+                      ]}
+                      onChange={(e) => onChange({ sp_niche: e.value })}
+                      placeholder="Specialty / Niche"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+
+
+
+        </div>
+
+        <div className="col-md-12">
+          <div className="form-group service-editor">
+            <label>Description</label>
+            <DefaultEditor
+              value={value.description}
+              onChange={(e: any) => onChange({ description: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
       {/* Video */}
       <div className="container-service space-service">
         <div className="row">
