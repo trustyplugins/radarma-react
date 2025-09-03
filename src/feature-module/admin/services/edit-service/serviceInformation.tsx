@@ -8,10 +8,12 @@ import { MultiSelect } from 'primereact/multiselect';
 import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
-  additionalService: number | null; // store tag ID instead of name
+  additionalService: number | null; // tag id
+  subServices: number[];
   price: number;
   duration: string;
   speciality: boolean;
+  image?: string | null;
 };
 
 
@@ -28,8 +30,8 @@ export type ServiceInformationValue = {
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl?: string;
-  tags: TagOption[];
-  subTags: TagOption[];
+  //tags: TagOption[];
+  //subTags: TagOption[];
 };
 
 type Props = {
@@ -46,7 +48,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [subCategoryOptions, setSubCategoryOptions] = useState<Option[]>([]);
   const [tagsOptions, setTagsOptions] = useState<TagOption[]>([]);
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
-
+  const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
   // fetch master categories
   useEffect(() => {
     const fetchMasterCategories = async () => {
@@ -151,47 +153,35 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     fetchTags();
   }, []);
 
-  // fetch subTags when tags change
+  // Sub Tags per row (lazy load)
   useEffect(() => {
-    const fetchSubTags = async () => {
-      if (!value.tags?.length) {
-        setSubTagsOptions([]);
-        onChange({ subTags: [] }); // clear if no tags
-        return;
-      }
-
-      const ids = value.tags.map(t => t.id);
-      const { data, error } = await supabase
-        .from('sub_tags')
-        .select('id, category, parent_id')
-        .in('parent_id', ids);
-
-      if (!error && data) {
-        const newOptions = data.map(st => ({ id: st.id, name: st.category, parent_id: st.parent_id }));
-        setSubTagsOptions(newOptions);
-
-        // filter selected subTags -> keep only those that still belong to selected tags
-        const filteredSubs = value.subTags.filter(st =>
-          ids.includes((newOptions.find(o => o.id === st.id)?.parent_id) ?? -1)
-        );
-
-        if (filteredSubs.length !== value.subTags.length) {
-          onChange({ subTags: filteredSubs });
+    const loadSubTags = async () => {
+      for (const row of value.additional || []) {
+        if (row.additionalService && !subTagsByTag[row.additionalService]) {
+          const { data } = await supabase
+            .from("sub_tags")
+            .select("id, category, parent_id")
+            .eq("parent_id", row.additionalService);
+          if (data) {
+            setSubTagsByTag(prev => ({
+              ...prev,
+              [row.additionalService!]: data.map(st => ({ id: st.id, name: st.category })),
+            }));
+          }
         }
       }
     };
-
-    fetchSubTags();
-  }, [value.tags]);
+    loadSubTags();
+  }, [value.additional, subTagsByTag]);
 
 
   // additional rows
-  const addNewServiceRow = () => {
+  const addRow = () => {
     const newId = (value.additional?.length || 0) + 1;
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: null, price: 0, duration: '', speciality: false },
+        { id: newId, additionalService: null, subServices: [], price: 0, duration: "", speciality: false, image: null },
       ],
     });
   };
@@ -298,151 +288,110 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               />
             </div>
           </div>
-
-          {/* Tags */}
-          <div className="col-md-12">
-            <div className="form-group">
-              <label>Tags</label>
-              <MultiSelect
-                value={value.tags}
-                options={tagsOptions}
-                onChange={e => onChange({ tags: e.value })}
-                optionLabel="name"
-                placeholder="Select tags"
-                display="chip"
-                filter
-                className="w-100"
-              />
-            </div>
-          </div>
-
-          {/* Sub Tags */}
-          <div className="col-md-12">
-            <div className="form-group">
-              <label>Sub Tags</label>
-              <MultiSelect
-                value={value.subTags}
-                options={subTagsOptions}
-                onChange={e => onChange({ subTags: e.value })}
-                optionLabel="name"
-                placeholder="Select Sub tags"
-                display="chip"
-                filter
-                className="w-100"
-                disabled={!value.tags?.length}
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="col-md-12">
-            <div className="form-group service-editor">
-              <label>Description</label>
-              <DefaultEditor
-                value={value.description}
-                onChange={(e: any) => onChange({ description: e.target.value })}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Additional Services */}
       <div className="container-service">
-        <div className="row">
-          <div className="col-sm-12">
-            <div className="additional">
-              <div className="sub-title Service"><h6>Additional Service</h6></div>
-              <div className="status-toggle float-sm-end mb-3">
-                <input
-                  type="checkbox"
-                  id="status_1"
-                  className="check"
-                  checked={value.additionalEnabled}
-                  onChange={e => onChange({ additionalEnabled: e.target.checked })}
-                />
-                <label htmlFor="status_1" className="checktoggle">checkbox</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {value.additionalEnabled && (
           <div className="addservice-info">
-            {(value.additional || []).map(row => (
-  <div key={row.id} className="row service-cont">
-    <div className="col-md-4">
-      <div className="form-group">
-        <label>Additional Service</label>
-        <Dropdown
-          value={tagsOptions.find(t => t.id === row.additionalService) || null}
-          options={tagsOptions}
-          onChange={(e) => {
-            const next = (value.additional || []).map(r =>
-              r.id === row.id ? { ...r, additionalService: e.value?.id || null } : r
-            );
-            onChange({ additional: next });
-          }}
-          optionLabel="name"
-          placeholder="Select service"
-          showClear
-          filter
-          className="w-100"
-        />
-      </div>
-    </div>
-
-    <div className="col-md-4">
-      <div className="form-group">
-        <label>Price</label>
-        <input
-          type="number"
-          className="form-control"
-          name="price"
-          value={row.price}
-          onChange={e => handleRowChange(row.id, e)}
-        />
-      </div>
-    </div>
-
-    <div className="col-md-2">
-      <div className="form-group special">
-        <label>Speciality</label>
-        <InputSwitch
-          checked={row.speciality}
-          onChange={(e) => {
-            const next = (value.additional || []).map(r =>
-              r.id === row.id ? { ...r, speciality: e.value } : r
-            );
-            onChange({ additional: next });
-          }}
-        />
-      </div>
-    </div>
-
-    {row.id > 1 && (
-      <div className="col-md-2">
-        <button
-          onClick={() => deleteServiceRow(row.id)}
-          className="btn btn-danger-outline"
-          type="button"
-        >
-          <Icon.Trash2 className="react-feather-custom trashicon" />
-        </button>
-      </div>
-    )}
-  </div>
-))}
-
+            {value.additional.map(row => {
+              const subs = row.additionalService ? subTagsByTag[row.additionalService] || [] : [];
+              return (
+                <div key={row.id} className="row service-cont">
+                  {/* Service */}
+                  <div className="col-md-3">
+                    <label>Service</label>
+                    <Dropdown
+                      value={tagsOptions.find(t => t.id === row.additionalService) || null}
+                      options={tagsOptions}
+                      onChange={e =>
+                        handleRowChange(row.id, "additionalService", e.value?.id || null)
+                      }
+                      optionLabel="name"
+                      placeholder="Select service"
+                      className="w-100"
+                    />
+                  </div>
+                  {/* Sub Service */}
+                  <div className="col-md-3">
+                    <label>Sub Service</label>
+                    <Dropdown
+                      value={row.subServices[0] ?? null}
+                      options={subs}
+                      optionLabel="name"
+                      optionValue="id"
+                      onChange={e =>
+                        handleRowChange(row.id, "subServices", e.value ? [e.value] : [])
+                      }
+                      placeholder="Select sub service"
+                      className="w-100"
+                    />
+                  </div>
+                  {/* Price */}
+                  <div className="col-md-2">
+                    <label>Price</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={row.price}
+                      onChange={e => handleRowChange(row.id, "price", Number(e.target.value))}
+                    />
+                  </div>
+                  {/* Image */}
+                  <div className="col-md-2">
+                    <label>Image</label>
+                    {!row.image ? (
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept="image/*"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            handleRowChange(row.id, "image", reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    ) : (
+                      <div>
+                        <img src={row.image} alt="service" style={{ maxWidth: 80 }} />
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleRowChange(row.id, "image", null)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {/* Speciality */}
+                  <div className="col-md-1">
+                    <label>Speciality</label>
+                    <InputSwitch
+                      checked={row.speciality}
+                      onChange={e => handleRowChange(row.id, "speciality", e.value)}
+                    />
+                  </div>
+                  {row.id > 1 && (
+                    <div className="col-md-1">
+                      <button className="btn btn-danger-outline" type="button" onClick={() => delRow(row.id)}>
+                        <Icon.Trash2 />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
-
-        {value.additionalEnabled && (
-          <Link to="#" className="link-sets add-extra" onClick={addNewServiceRow}>
-            <i className="fa fa-plus-circle me-2" aria-hidden="true" />
-            Add Additional Service
-          </Link>
-        )}
+        <Link to="#" className="link-sets add-extra" onClick={addRow}>
+          <i className="fa fa-plus-circle me-2" /> Add Additional Service
+        </Link>
       </div>
 
       {/* Video */}

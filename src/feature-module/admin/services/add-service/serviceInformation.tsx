@@ -46,7 +46,10 @@ type Props = {
   onChange: (patch: Partial<ServiceInformationValue>) => void;
   nextTab: () => void;
 };
-
+const years = Array.from(
+  { length: new Date().getFullYear() - 1900 + 1 },
+  (_, i) => (1900 + i).toString()
+);
 const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
   const [masterOptions, setMasterOptions] = useState<Option[]>([]);
@@ -57,7 +60,8 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
   const [addTagsOptions, addSetTagsOptions] = useState<TagOption[]>([]);
   const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
-  // tagsOptions = [{ id: 1, name: "Plumber" }, ...]
+  const [dropdownConfig, setDropdownConfig] = useState<any[]>([]);
+
 
   // fetch master categories
   useEffect(() => {
@@ -249,6 +253,20 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     );
     onChange({ additional: next });
   };
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data, error } = await supabase
+        .from("json_tags")
+        .select("data")
+        .single();
+
+      if (!error && data?.data) {
+        setDropdownConfig(data.data.dropdowns);
+      }
+    };
+    fetchConfig();
+  }, []);
   return (
     <fieldset id="first-field">
       <div className="container-service space-service">
@@ -413,9 +431,9 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               return (
                 <div key={row.id} className="row service-cont" style={{ backgroundColor: '#f7f7f7', marginBottom: '10px', padding: '10px', borderRadius: '4px' }}>
                   {/* Tags Dropdown */}
-                  <div className="col-md-6">
+                  <div className="col-md-3">
                     <div className="form-group">
-                      <label>Services</label>
+                      <label>Service</label>
                       <Dropdown
                         value={tagsOptions.find(t => t.id === row.additionalService) || null}
                         options={tagsOptions}
@@ -437,7 +455,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                   </div>
 
                   {/* Sub Tags MultiSelect */}
-                  <div className="col-md-6">
+                  <div className="col-md-3">
                     <div className="form-group">
                       <label>Sub Services</label>
                       <Dropdown
@@ -462,7 +480,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                   </div>
 
                   {/* Price */}
-                  <div className="col-md-3">
+                  <div className="col-md-2">
                     <div className="form-group">
                       <label>Price</label>
                       <input
@@ -477,7 +495,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
 
                   {/* Service Image Upload */}
-                  <div className="col-md-3">
+                  <div className="col-md-2">
                     <div className="form-group">
                       <label>Service Image</label>
                       {!row.image ? (
@@ -574,170 +592,23 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               <div className="sub-title Service"><h6>Extra Details</h6></div>
             </div>
             <div className="row">
-
-              <div className="col-sm-6">
-                <div className="video-link">
+              {dropdownConfig.map((dropdown) => (
+                <div key={dropdown.key} className="col-sm-6">
                   <div className="form-group">
-                    <label>Accessibility</label>
+                    <label>{dropdown.label}</label>
                     <Dropdown
-                      value={value.accessibility ?? null}
-                      options={[
-                        { label: "Wheelchair Accessible", value: "wheelchair-accessible" },
-                        { label: "Senior Friendly", value: "senior-friendly" },
-                        { label: "Kids Friendly", value: "kids-friendly" },
-                        { label: "Pet Friendly", value: "pet-friendly" },
-                        { label: "Family Friendly", value: "family-friendly" },
-                        { label: "Sector Parking Available", value: "sector-parking-available" },
-                        { label: "Paid Parking", value: "paid-parking" },
-                        { label: "Street Parking", value: "street-parking" },
-                        { label: "Ramp Available", value: "ramp-available" },
-                        { label: "Lift / Elevator Available", value: "lift-elevator-available" },
-                        { label: "Easy Entry", value: "easy-entry" },
-                        { label: "Near Market", value: "near-market" },
-                        { label: "Late Night Open", value: "late-night-open" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ accessibility: e.value })}
-                      placeholder="Select Accessibility"
+                      value={(value as any)[dropdown.key] ?? null}
+                      options={dropdown.options}
+                      onChange={(e) => onChange({ [dropdown.key]: e.value } as any)}
+                      placeholder={`Select ${dropdown.label}`}
                       showClear
                       filter
                       className="w-100"
                     />
+
                   </div>
                 </div>
-              </div>
-
-              <div className="col-sm-6">
-                <div className="video-link">
-                  <div className="form-group">
-                    <label>Payment Options</label>
-                    <Dropdown
-                      value={value.payment_options ?? null}
-                      options={[
-                        { label: "Cash Accepted", value: "cash-accepted" },
-                        { label: "Credit / Debit Card Accepted", value: "card-accepted" },
-                        { label: "UPI / Paytm / Google Pay", value: "upi-payments" },
-                        { label: "Mobile Wallets", value: "mobile-wallets" },
-                        { label: "EMI Available", value: "emi-available" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ payment_options: e.value })}
-                      placeholder="Select Payment Options"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-sm-6">
-                <div className="video-link">
-                  <div className="form-group">
-                    <label>Service Mode / Availability</label>
-                    <Dropdown
-                      value={value.service_mode ?? null}
-                      options={[
-                        { label: "Walk-ins Allowed", value: "walkins-allowed" },
-                        { label: "Appointment Required", value: "appointment-required" },
-                        { label: "Online Booking", value: "online-booking" },
-                        { label: "Pickup/Takeaway", value: "pickup-takeaway" },
-                        { label: "Home Delivery", value: "home-delivery" },
-                        { label: "Dine-in / On-Site Service", value: "dinein-onsite" },
-                        { label: "On Call", value: "on-call" },
-                        { label: "Same-Day Service", value: "same-day-service" },
-                        { label: "Doorstep Service", value: "doorstep-service" },
-                        { label: "Late Night Food", value: "late-night-food" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ service_mode: e.value })}
-                      placeholder="Select Service Mode"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-sm-6">
-                <div className="video-link">
-                  <div className="form-group">
-                    <label>Price range</label>
-                    <Dropdown
-                      value={value.price_range ?? null}
-                      options={[
-                        { label: "Budget", value: "Budget" },
-                        { label: "Mid-range", value: "mid-range" },
-                        { label: "Premium / Luxury", value: "premium-Luxury" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ price_range: e.value })}
-                      placeholder="Select Price Range"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-sm-6">
-                <div className="video-link">
-                  <div className="form-group">
-                    <label>Quality / Authenticity</label>
-                    <Dropdown
-                      value={value.quality ?? null}
-                      options={[
-                        { label: "Premium", value: "premium" },
-                        { label: "Branded", value: "branded" },
-                        { label: "Handmade", value: "handmade" },
-                        { label: "Locally Sourced", value: "locally-sourced" },
-                        { label: "Verified", value: "verified" },
-                        { label: "Hygienic / Safe", value: "hygienic-safe" },
-                        { label: "Homemade", value: "homemade" },
-                        { label: "Organic", value: "organic" },
-                        { label: "Eco-Friendly", value: "eco-friendly" },
-                        { label: "Authentic / Traditional", value: "authentic-traditional" },
-                        { label: "Limited Edition", value: "limited-edition" },
-                        { label: "Customizable", value: "customizable" },
-                        { label: "Fresh", value: "fresh" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ quality: e.value })}
-                      placeholder="Select Quality / Authenticity"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-sm-6">
-                <div className="video-link">
-                  <div className="form-group">
-                    <label>Specialty / Niche</label>
-                    <Dropdown
-                      value={value.sp_niche ?? null}
-                      options={[
-                        { label: "Limited Edition", value: "limited-edition" },
-                        { label: "Seasonal", value: "seasonal" },
-                        { label: "Unique Products", value: "unique-products" },
-                        { label: "Rare Finds", value: "rare-finds" },
-                        { label: "Other", value: "other" },
-                      ]}
-                      onChange={(e) => onChange({ sp_niche: e.value })}
-                      placeholder="Specialty / Niche"
-                      showClear
-                      filter
-                      className="w-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-
+              ))}
             </div>
           </div>
 
@@ -745,16 +616,17 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
         </div>
         <div className="col-md-12">
-            <div className="form-group">
-              <label>Start Since</label>
-              <input
-                type="text"
-                className="form-control"
-                value={value.since}
-                onChange={e => onChange({ since: e.target.value })}
-              />
-            </div>
+          <div className="form-group">
+            <label>Start Since (Year)</label>
+            <Dropdown
+              value={value.since}
+              options={years.map(y => ({ label: y, value: y }))}
+              onChange={(e) => onChange({ since: e.value })}
+              placeholder="Select Year"
+              className="w-100"
+            />
           </div>
+        </div>
 
         <div className="col-md-12">
           <div className="form-group service-editor">

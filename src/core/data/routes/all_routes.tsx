@@ -260,6 +260,7 @@ export const all_routes = {
   subCategories: '/categories/sub-categories',
   sortingTags:'/sorting-tags/tags-list',
   subTags:'/sorting-tags/sub-tags',
+  jsonData:'/data/json-data',
   addPages:'/pages/add-page',
   EditPages:'/edit-page',
   viewService:'/view-listing',

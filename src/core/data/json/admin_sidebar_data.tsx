@@ -73,6 +73,10 @@ export const adminSidebar = [
           {
             menuValue: 'Sub Tags',
             route: routes.subTags,
+          },
+          {
+            menuValue: 'JSON',
+            route: routes.jsonData,
           }
         ],
       },
