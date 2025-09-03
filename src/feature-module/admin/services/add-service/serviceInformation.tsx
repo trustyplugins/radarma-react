@@ -38,6 +38,7 @@ export type ServiceInformationValue = {
   price_range?: "Budget" | null;
   quality?: "Premium" | null;
   sp_niche?: "Limited Edition" | null;
+  since: string;
 };
 
 type Props = {
@@ -594,6 +595,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "Easy Entry", value: "easy-entry" },
                         { label: "Near Market", value: "near-market" },
                         { label: "Late Night Open", value: "late-night-open" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ accessibility: e.value })}
                       placeholder="Select Accessibility"
@@ -617,6 +619,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "UPI / Paytm / Google Pay", value: "upi-payments" },
                         { label: "Mobile Wallets", value: "mobile-wallets" },
                         { label: "EMI Available", value: "emi-available" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ payment_options: e.value })}
                       placeholder="Select Payment Options"
@@ -645,6 +648,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "Same-Day Service", value: "same-day-service" },
                         { label: "Doorstep Service", value: "doorstep-service" },
                         { label: "Late Night Food", value: "late-night-food" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ service_mode: e.value })}
                       placeholder="Select Service Mode"
@@ -666,6 +670,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "Budget", value: "Budget" },
                         { label: "Mid-range", value: "mid-range" },
                         { label: "Premium / Luxury", value: "premium-Luxury" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ price_range: e.value })}
                       placeholder="Select Price Range"
@@ -697,6 +702,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "Limited Edition", value: "limited-edition" },
                         { label: "Customizable", value: "customizable" },
                         { label: "Fresh", value: "fresh" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ quality: e.value })}
                       placeholder="Select Quality / Authenticity"
@@ -718,7 +724,8 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         { label: "Limited Edition", value: "limited-edition" },
                         { label: "Seasonal", value: "seasonal" },
                         { label: "Unique Products", value: "unique-products" },
-                        { label: "Rare Finds", value: "rare-finds" }
+                        { label: "Rare Finds", value: "rare-finds" },
+                        { label: "Other", value: "other" },
                       ]}
                       onChange={(e) => onChange({ sp_niche: e.value })}
                       placeholder="Specialty / Niche"
@@ -737,6 +744,17 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
 
         </div>
+        <div className="col-md-12">
+            <div className="form-group">
+              <label>Start Since</label>
+              <input
+                type="text"
+                className="form-control"
+                value={value.since}
+                onChange={e => onChange({ since: e.target.value })}
+              />
+            </div>
+          </div>
 
         <div className="col-md-12">
           <div className="form-group service-editor">

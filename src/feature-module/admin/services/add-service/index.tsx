@@ -12,6 +12,7 @@ type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
   title: string;
+  since:string;
   masterCategory: Option[];   // city in UI
   category: Option[];              // sectors (multi)
   mainCategory: Option[];          // main categories (multi)
@@ -66,6 +67,7 @@ const emptySlot: Slot = { id: 1, from: '00:00:00', to: '00:00:00', slots: '' };
 const initialForm: AddServiceForm = {
   info: {
     title: '',
+    since:'',
     masterCategory: [],
     category: [],
     mainCategory: [],
@@ -269,6 +271,7 @@ const AddService = () => {
         user_id: user.id,
         // information
         title: form.info.title,
+        since: form.info.since,
         description: form.info.description || null,
         // store NAMES to match your current TEXT columns
         city_id: form.info.masterCategory.map(o => o.id),
