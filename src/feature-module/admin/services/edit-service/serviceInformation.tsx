@@ -32,6 +32,13 @@ export type ServiceInformationValue = {
   videoUrl?: string;
   //tags: TagOption[];
   //subTags: TagOption[];
+  accessibility?: string | null;
+  payment_options?: string | null;
+  service_mode?: string | null;
+  price_range?: string | null;
+  quality?: string | null;
+  sp_niche?: string | null;
+  since?: string | null;
 };
 
 type Props = {
@@ -49,6 +56,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [tagsOptions, setTagsOptions] = useState<TagOption[]>([]);
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
   const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
+  const [dropdownConfig, setDropdownConfig] = useState<any[]>([]);
   // fetch master categories
   useEffect(() => {
     const fetchMasterCategories = async () => {
@@ -190,13 +198,27 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({ additional: (value.additional || []).filter(r => r.id !== id) });
   };
 
-  const handleRowChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value: v } = e.target;
-    const next = (value.additional || []).map(r =>
-      r.id === id ? { ...r, [name]: name === 'price' ? Number(v) : v } : r
+  const handleRowChange = (id: number, field: keyof AdditionalRow, newValue: any) => {
+    const next = value.additional.map(r =>
+      r.id === id ? { ...r, [field]: newValue } : r
     );
     onChange({ additional: next });
   };
+
+  // Fetch dropdown config from json_tags
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data, error } = await supabase
+        .from('json_tags')
+        .select('data')
+        .single();
+
+      if (!error && data?.data) {
+        setDropdownConfig(data.data.dropdowns);
+      }
+    };
+    fetchConfig();
+  }, []);
   return (
     <fieldset id="first-field">
       <div className="container-service space-service">
@@ -298,88 +320,94 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
             {value.additional.map(row => {
               const subs = row.additionalService ? subTagsByTag[row.additionalService] || [] : [];
               return (
-                <div key={row.id} className="row service-cont">
+                <div key={row.id} className="row service-cont" style={{ backgroundColor: '#f7f7f7', marginBottom: '10px', padding: '10px', borderRadius: '4px' }}>
                   {/* Service */}
-                  <div className="col-md-3">
-                    <label>Service</label>
-                    <Dropdown
-                      value={tagsOptions.find(t => t.id === row.additionalService) || null}
-                      options={tagsOptions}
-                      onChange={e =>
-                        handleRowChange(row.id, "additionalService", e.value?.id || null)
-                      }
-                      optionLabel="name"
-                      placeholder="Select service"
-                      className="w-100"
-                    />
-                  </div>
-                  {/* Sub Service */}
-                  <div className="col-md-3">
-                    <label>Sub Service</label>
-                    <Dropdown
-                      value={row.subServices[0] ?? null}
-                      options={subs}
-                      optionLabel="name"
-                      optionValue="id"
-                      onChange={e =>
-                        handleRowChange(row.id, "subServices", e.value ? [e.value] : [])
-                      }
-                      placeholder="Select sub service"
-                      className="w-100"
-                    />
-                  </div>
-                  {/* Price */}
-                  <div className="col-md-2">
-                    <label>Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={row.price}
-                      onChange={e => handleRowChange(row.id, "price", Number(e.target.value))}
-                    />
-                  </div>
-                  {/* Image */}
-                  <div className="col-md-2">
-                    <label>Image</label>
-                    {!row.image ? (
-                      <input
-                        type="file"
-                        className="form-control"
-                        accept="image/*"
-                        onChange={e => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            handleRowChange(row.id, "image", reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Service</label>
+                      <Dropdown
+                        value={tagsOptions.find(t => t.id === row.additionalService) || null}
+                        options={tagsOptions}
+                        onChange={e =>
+                          handleRowChange(row.id, "additionalService", e.value?.id || null)
+                        }
+                        optionLabel="name"
+                        placeholder="Select service"
+                        className="w-100"
                       />
-                    ) : (
-                      <div>
-                        <img src={row.image} alt="service" style={{ maxWidth: 80 }} />
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleRowChange(row.id, "image", null)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                    </div></div>
+                  {/* Sub Service */}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Sub Service</label>
+                      <Dropdown
+                        value={row.subServices[0] ?? null}
+                        options={subs}
+                        optionLabel="name"
+                        optionValue="id"
+                        onChange={e =>
+                          handleRowChange(row.id, "subServices", e.value ? [e.value] : [])
+                        }
+                        placeholder="Select sub service"
+                        className="w-100"
+                      />
+                    </div></div>
+                  {/* Price */}
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>Price</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={row.price}
+                        onChange={e => handleRowChange(row.id, "price", Number(e.target.value))}
+                      />
+                    </div></div>
+                  {/* Image */}
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>Image</label>
+                      {!row.image ? (
+                        <input
+                          type="file"
+                          className="form-control"
+                          accept="image/*"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleRowChange(row.id, "image", reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      ) : (
+                        <div className="image-preview-wrapper">
+                          <img src={row.image} alt="service" style={{ maxHeight: 60, display: 'block' }} className='img-thumbnail mb-2' />
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleRowChange(row.id, "image", null)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div></div>
                   {/* Speciality */}
-                  <div className="col-md-1">
-                    <label>Speciality</label>
-                    <InputSwitch
-                      checked={row.speciality}
-                      onChange={e => handleRowChange(row.id, "speciality", e.value)}
-                    />
+                  <div className="col-md-2">
+                    <div className="form-group special">
+                      <label>Speciality</label>
+                      <InputSwitch
+                        checked={row.speciality}
+                        onChange={e => handleRowChange(row.id, "speciality", e.value)}
+                      />
+                    </div>
                   </div>
                   {row.id > 1 && (
                     <div className="col-md-1">
-                      <button className="btn btn-danger-outline" type="button" onClick={() => delRow(row.id)}>
+                      <button className="btn btn-danger-outline" type="button" onClick={() => deleteServiceRow(row.id)}>
                         <Icon.Trash2 />
                       </button>
                     </div>
@@ -393,7 +421,64 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           <i className="fa fa-plus-circle me-2" /> Add Additional Service
         </Link>
       </div>
+      <div className="container-service extra-servcie">
+        <div className="row">
+          <div className="col-sm-12">
+            <div className="extra-dtl">
+              <div className="sub-title Service"><h6>Extra Details</h6></div>
+            </div>
+            <div className="row">
+              {dropdownConfig.map((dropdown) => (
+                <div key={dropdown.key} className="col-sm-6">
+                  <div className="form-group">
+                    <label>{dropdown.label}</label>
+                    <Dropdown
+                      value={value[dropdown.key] ?? null}   // saved value from DB
+                      options={dropdown.options}            // from json_tags
+                      onChange={(e) => onChange({ [dropdown.key]: e.value })}
+                      placeholder={`Select ${dropdown.label}`}
+                      optionLabel="label"
+                      optionValue="value"
+                      showClear
+                      filter
+                      className="w-100"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
+       {/* Since Year */}
+  <div className="col-md-12">
+    <div className="form-group">
+      <label>Start Since (Year)</label>
+      <Dropdown
+        value={value.since ?? null}
+        options={Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+          const year = 1900 + i;
+          return { label: year.toString(), value: year.toString() };
+        }).reverse()}   // latest year first
+        onChange={(e) => onChange({ since: e.value })}
+        placeholder="Select Year"
+        className="w-100"
+        showClear
+        filter
+      />
+    </div>
+  </div>
+
+        <div className="col-md-12">
+          <div className="form-group service-editor">
+            <label>Description</label>
+            <DefaultEditor
+              value={value.description}
+              onChange={(e: any) => onChange({ description: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
       {/* Video */}
       <div className="container-service space-service">
         <div className="row">

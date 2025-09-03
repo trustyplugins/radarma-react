@@ -14,7 +14,7 @@ type TagOption = { id: number; name: string };
 
 type Info = {
   title: string;
-  masterCategory:Option[];
+  masterCategory: Option[];
   category: Option[];
   mainCategory: Option[];
   subCategory: Option[];
@@ -24,6 +24,13 @@ type Info = {
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl: string;
+  since?: string;
+  accessibility?: string | null;
+  payment_options?: string | null;
+  service_mode?: string | null;
+  price_range?: string | null;
+  quality?: string | null;
+  sp_niche?: string | null;
 };
 
 type Slot = { id: number; from: string; to: string; slots: string };
@@ -131,6 +138,13 @@ const EditService = () => {
           additionalEnabled: data.additional_enabled,
           additional: data.additional || [],
           videoUrl: data.video_url || "",
+          since: data.since ?? null,
+          accessibility: data.extra_details?.accessibility ?? null,
+          payment_options: data.extra_details?.payment_options ?? null,
+          service_mode: data.extra_details?.service_mode ?? null,
+          price_range: data.extra_details?.price_range ?? null,
+          quality: data.extra_details?.quality ?? null,
+          sp_niche: data.extra_details?.sp_niche ?? null,
         },
         availability: data.availability || { all: [], perDay: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [] } },
         location: { address: data.address, lat: data.lat, lng: data.lng },
@@ -161,6 +175,7 @@ const EditService = () => {
       additional_enabled: form.info.additionalEnabled,
       additional: form.info.additional,
       video_url: form.info.videoUrl,
+      since: form.info.since,
       availability: form.availability,
       address: form.location.address,
       lat: form.location.lat,
@@ -170,6 +185,14 @@ const EditService = () => {
       meta_title: form.seo.metaTitle,
       meta_description: form.seo.metaDescription,
       meta_keywords: form.seo.metaKeywords,
+      extra_details: {
+        accessibility: form.info.accessibility ?? null,
+        payment_options: form.info.payment_options ?? null,
+        service_mode: form.info.service_mode ?? null,
+        price_range: form.info.price_range ?? null,
+        quality: form.info.quality ?? null,
+        sp_niche: form.info.sp_niche ?? null,
+      },
     };
 
     const { error } = await supabase
@@ -204,7 +227,8 @@ const EditService = () => {
           <Gallery
             value={form.gallery}
             onChange={(patch) =>
-              setForm((p) => ({...p!,gallery: { ...p!.gallery, ...patch },
+              setForm((p) => ({
+                ...p!, gallery: { ...p!.gallery, ...patch },
               }))
             }
             prevTab={() => setPageChange("location")}
@@ -221,8 +245,8 @@ const EditService = () => {
 
         ) : (
           userRole === "A1" && (
-          <EditSeo value={form.seo} onChange={(patch) => setForm(p => ({ ...p!, seo: { ...p!.seo, ...patch } }))} prevTab={() => setPageChange("gallery")} onSave={handleUpdate} saving={saving} />
-        ))}
+            <EditSeo value={form.seo} onChange={(patch) => setForm(p => ({ ...p!, seo: { ...p!.seo, ...patch } }))} prevTab={() => setPageChange("gallery")} onSave={handleUpdate} saving={saving} />
+          ))}
       </div>
     </div>
   );

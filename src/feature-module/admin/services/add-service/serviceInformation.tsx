@@ -431,7 +431,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
               return (
                 <div key={row.id} className="row service-cont" style={{ backgroundColor: '#f7f7f7', marginBottom: '10px', padding: '10px', borderRadius: '4px' }}>
                   {/* Tags Dropdown */}
-                  <div className="col-md-3">
+                  <div className="col-md-6">
                     <div className="form-group">
                       <label>Service</label>
                       <Dropdown
@@ -455,9 +455,9 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                   </div>
 
                   {/* Sub Tags MultiSelect */}
-                  <div className="col-md-3">
+                  <div className="col-md-6">
                     <div className="form-group">
-                      <label>Sub Services</label>
+                      <label>Sub Service</label>
                       <Dropdown
                         value={row.subServices?.[0] ?? null} // pick the first if array stored
                         options={availableSubTags}
@@ -480,7 +480,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                   </div>
 
                   {/* Price */}
-                  <div className="col-md-2">
+                  <div className="col-md-4">
                     <div className="form-group">
                       <label>Price</label>
                       <input
@@ -495,9 +495,9 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
 
                   {/* Service Image Upload */}
-                  <div className="col-md-2">
+                  <div className="col-md-4">
                     <div className="form-group">
-                      <label>Service Image</label>
+                      <label>Image</label>
                       {!row.image ? (
                         <>
                           <input
@@ -525,7 +525,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                             src={row.image}
                             alt="Service"
                             className="img-thumbnail mb-2"
-                            style={{ maxWidth: "100px", display: "block" }}
+                            style={{ maxHeight: "60px", display: "block" }}
                           />
                           <button
                             type="button"
