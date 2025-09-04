@@ -437,20 +437,21 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 <div key={dropdown.key} className="col-sm-6">
                   <div className="form-group">
                     <label>{dropdown.label}</label>
-                    <Dropdown
-                      value={value[dropdown.key] ?? null}   // saved value from DB
-                      options={dropdown.options}            // from json_tags
+                    <MultiSelect
+                      value={value[dropdown.key] ?? []}       // MultiSelect expects array
+                      options={dropdown.options}              // from json_tags
                       onChange={(e) => onChange({ [dropdown.key]: e.value })}
-                      placeholder={`Select ${dropdown.label}`}
                       optionLabel="label"
                       optionValue="value"
-                      showClear
+                      placeholder={`Select ${dropdown.label}`}
+                      display="chip"                          // show chips for selected
                       filter
                       className="w-100"
                     />
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         </div>

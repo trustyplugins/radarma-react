@@ -23,12 +23,12 @@ type Info = {
   additionalEnabled: boolean;
   additional: AdditionalRow[];
   videoUrl: string;
-  accessibility: string | null;
-  payment_options: string | null;
-  service_mode: string | null;
-  price_range: string | null;
-  quality: string | null;
-  sp_niche: string | null;
+  accessibility?: string[];
+  payment_options?: string[];
+  service_mode?: string[];
+  price_range?: string[];
+  quality?: string[];
+  sp_niche?: string[];
   is_brand: boolean;       // ✅ add this
   brand_name: string | null; // ✅ add this
 };
@@ -80,12 +80,12 @@ const initialForm: AddServiceForm = {
     additionalEnabled: true,
     additional: [{ id: 1, additionalService: null, price: 0, duration: '', speciality: false, image: null }],
     videoUrl: '',
-    accessibility: null,
-    payment_options: null,
-    service_mode: null,
-    price_range: null,
-    quality: null,
-    sp_niche: null,
+    accessibility: [],
+    payment_options: [],
+    service_mode: [],
+    price_range: [],
+    quality: [],
+    sp_niche: [],
     is_brand: false,       // ✅ default
     brand_name: null
   },
@@ -311,14 +311,14 @@ const AddService = () => {
         status: 'draft',
         // 🆕 NEW: Extra details stored in JSON
         extra_details: {
-          accessibility: form.info.accessibility ?? null,
-          payment_options: form.info.payment_options ?? null,
-          service_mode: form.info.service_mode ?? null,
-          price_range: form.info.price_range ?? null,
-          quality: form.info.quality ?? null,
-          sp_niche: form.info.sp_niche ?? null,
-          
+          accessibility: form.info.accessibility ?? [],
+          payment_options: form.info.payment_options ?? [],
+          service_mode: form.info.service_mode ?? [],
+          price_range: form.info.price_range ?? [],
+          quality: form.info.quality ?? [],
+          sp_niche: form.info.sp_niche ?? [],
         }
+        
       };
 
 

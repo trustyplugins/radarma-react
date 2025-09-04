@@ -25,12 +25,12 @@ type Info = {
   additional: AdditionalRow[];
   videoUrl: string;
   since?: string;
-  accessibility?: string | null;
-  payment_options?: string | null;
-  service_mode?: string | null;
-  price_range?: string | null;
-  quality?: string | null;
-  sp_niche?: string | null;
+  accessibility?: string[];
+  payment_options?: string[];
+  service_mode?: string[];
+  price_range?: string[];
+  quality?: string[];
+  sp_niche?: string[];
   is_brand: boolean;       // ✅ add this
   brand_name: string | null; // ✅ add this
 };
@@ -141,12 +141,12 @@ const EditService = () => {
           additional: data.additional || [],
           videoUrl: data.video_url || "",
           since: data.since ?? null,
-          accessibility: data.extra_details?.accessibility ?? null,
-          payment_options: data.extra_details?.payment_options ?? null,
-          service_mode: data.extra_details?.service_mode ?? null,
-          price_range: data.extra_details?.price_range ?? null,
-          quality: data.extra_details?.quality ?? null,
-          sp_niche: data.extra_details?.sp_niche ?? null,
+          accessibility: data.extra_details?.accessibility ?? [],
+          payment_options: data.extra_details?.payment_options ?? [],
+          service_mode: data.extra_details?.service_mode ?? [],
+          price_range: data.extra_details?.price_range ?? [],
+          quality: data.extra_details?.quality ?? [],
+          sp_niche: data.extra_details?.sp_niche ?? [],
           is_brand: data.is_brand ?? false,
           brand_name: data.brand_name ?? null,
 
@@ -191,12 +191,12 @@ const EditService = () => {
       meta_description: form.seo.metaDescription,
       meta_keywords: form.seo.metaKeywords,
       extra_details: {
-        accessibility: form.info.accessibility ?? null,
-        payment_options: form.info.payment_options ?? null,
-        service_mode: form.info.service_mode ?? null,
-        price_range: form.info.price_range ?? null,
-        quality: form.info.quality ?? null,
-        sp_niche: form.info.sp_niche ?? null,
+        accessibility: form.info.accessibility ?? [],
+        payment_options: form.info.payment_options ?? [],
+        service_mode: form.info.service_mode ?? [],
+        price_range: form.info.price_range ?? [],
+        quality: form.info.quality ?? [],
+        sp_niche: form.info.sp_niche ?? [],
       },
       is_brand: form.info.is_brand,
       brand_name: form.info.brand_name,

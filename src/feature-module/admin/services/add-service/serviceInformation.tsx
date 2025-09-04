@@ -32,12 +32,12 @@ export type ServiceInformationValue = {
   videoUrl?: string;
   tags: TagOption[];
   subTags: TagOption[];
-  accessibility?: "Wheelchair Accessible" | "Senior Friendly" | null;
-  payment_options?: "Cash Accepted" | null;
-  service_mode?: "Walk-ins Allowed" | null;
-  price_range?: "Budget" | null;
-  quality?: "Premium" | null;
-  sp_niche?: "Limited Edition" | null;
+  accessibility?: string[];
+  payment_options?: string[];
+  service_mode?: string[];
+  price_range?: string[];
+  quality?: string[];
+  sp_niche?: string[];  
   since: string;
   is_brand: boolean;
   brand_name: string | null;
@@ -448,7 +448,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         onChange={(e) => {
                           const next = (value.additional || []).map(r =>
                             r.id === row.id
-                              ? { ...r, additionalService: e.value ? e.value.id : null,subService: null }
+                              ? { ...r, additionalService: e.value ? e.value.id : null, subService: null }
                               : r
                           );
                           onChange({ additional: next });
@@ -605,16 +605,17 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                 <div key={dropdown.key} className="col-sm-6">
                   <div className="form-group">
                     <label>{dropdown.label}</label>
-                    <Dropdown
-                      value={(value as any)[dropdown.key] ?? null}
+                    <MultiSelect
+                      value={(value as any)[dropdown.key] ?? []}   // multi-select → array
                       options={dropdown.options}
                       onChange={(e) => onChange({ [dropdown.key]: e.value } as any)}
+                      optionLabel="label"
+                      optionValue="value"
                       placeholder={`Select ${dropdown.label}`}
-                      showClear
+                      display="chip"        // shows chips for selected values
                       filter
                       className="w-100"
                     />
-
                   </div>
                 </div>
               ))}
