@@ -95,7 +95,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab, onUpdat
         const filtered = value.category.filter(sc =>
           ids.includes((newOptions.find(o => o.id === sc.id)?.parent_id) ?? -1)
         );
-
+        console.log(filtered, value.category);
         // update state if anything was removed
         if (filtered.length !== value.category.length) {
           onChange({ category: filtered });
@@ -266,16 +266,21 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab, onUpdat
             <div className="form-group">
               <label>Sector</label>
               <MultiSelect
-                value={value.category}
+                value={value.category.map(c => c.id)}      // store array of IDs
                 options={categoryOptions}
-                onChange={e => onChange({ category: e.value })}
+                onChange={e => {
+                  const selected = categoryOptions.filter(opt => e.value.includes(opt.id));
+                  onChange({ category: selected });        // save objects again
+                }}
                 optionLabel="name"
+                optionValue="id"
                 placeholder="Select sector"
                 display="chip"
                 filter
                 className="w-100"
                 disabled={!value.masterCategory?.length}
               />
+
 
             </div>
           </div>
@@ -303,16 +308,21 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab, onUpdat
             <div className="form-group">
               <label>Sub Categories</label>
               <MultiSelect
-                value={value.subCategory}
+                value={value.subCategory.map(sc => sc.id)}      // array of IDs
                 options={subCategoryOptions}
-                onChange={e => onChange({ subCategory: e.value })}
+                onChange={e => {
+                  const selected = subCategoryOptions.filter(opt => e.value.includes(opt.id));
+                  onChange({ subCategory: selected });          // save objects again
+                }}
                 optionLabel="name"
+                optionValue="id"
                 placeholder="Select sub categories"
                 display="chip"
                 filter
                 className="w-100"
                 disabled={!value.mainCategory?.length}
               />
+
             </div>
           </div>
         </div>
@@ -556,7 +566,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab, onUpdat
                 className="btn btn-primary"
                 type="button"
                 onClick={onUpdate}
-                style={{marginRight:'10px'}}
+                style={{ marginRight: '10px' }}
               >
                 Update
               </button>
