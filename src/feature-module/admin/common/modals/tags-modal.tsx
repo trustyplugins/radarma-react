@@ -5,15 +5,15 @@ import supabase from '../../../../supabaseClient'; // adjust path
 
 interface Props {
   categoryData?: any; // null for Add, object for Edit
-  onSave: (category: string, slug: string, imageUrl: string, featured: boolean,brand:boolean) => void;
-  onUpdate: (id: number, category: string, slug: string, imageUrl: string, featured: boolean,brand:boolean) => void;
+  onSave: (category: string, slug: string, imageUrl: string, featured: boolean) => void;
+  onUpdate: (id: number, category: string, slug: string, imageUrl: string, featured: boolean) => void;
 }
 
 const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
   const [category, setCategory] = useState('');
   const [slug, setSlug] = useState('');
   const [featured, setFeatured] = useState(false);
-  const [brand, setBrand] = useState(false);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [removeImage, setRemoveImage] = useState(false);
@@ -23,7 +23,6 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
       setSlug(categoryData.category_slug || '');
       setPreviewUrl(categoryData.image_url || ''); // existing image if editing
       setFeatured(!!categoryData.is_link);
-      setBrand(!!categoryData.is_brand);
       setRemoveImage(false);
     } else {
       setCategory('');
@@ -31,7 +30,6 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
       setImageFile(null);
       setPreviewUrl('');
       setFeatured(false);
-      setBrand(false);
       setRemoveImage(false);
     }
   }, [categoryData]);
@@ -75,9 +73,9 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
     const uploadedImageUrl = await uploadImage();
 
     if (categoryData?.id) {
-      onUpdate(categoryData.id, category, slug, uploadedImageUrl, featured,brand);
+      onUpdate(categoryData.id, category, slug, uploadedImageUrl, featured);
     } else {
-      onSave(category, slug, uploadedImageUrl, featured,brand);
+      onSave(category, slug, uploadedImageUrl, featured);
     }
 
     // Close modal manually
@@ -184,26 +182,7 @@ const TagsModal: React.FC<Props> = ({ categoryData, onSave, onUpdate }) => {
                 </ul>
               </div>
 
-{/* is brand Option */}
-              <div className="mb-4">
-                <label className="form-label">Is brand?</label>
-                <ul className="custom-radiosbtn">
-                  <li>
-                    <label className="radiossets">
-                      Yes
-                      <input type="radio" name="brand" checked={brand} onChange={() => setBrand(true)} />
-                      <span className="checkmark-radio" />
-                    </label>
-                  </li>
-                  <li>
-                    <label className="radiossets">
-                      No
-                      <input type="radio" name="brand" checked={!brand} onChange={() => setBrand(false)} />
-                      <span className="checkmark-radio" />
-                    </label>
-                  </li>
-                </ul>
-              </div>
+
             </div>
 
             <div className="modal-footer">

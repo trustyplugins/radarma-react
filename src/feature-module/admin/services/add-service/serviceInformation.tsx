@@ -9,7 +9,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
   additionalService: number | null; // store tag ID here
-  subServices: number[];
+  subService: number | null;
   price: number;
   duration: string;
   speciality: boolean;
@@ -39,6 +39,8 @@ export type ServiceInformationValue = {
   quality?: "Premium" | null;
   sp_niche?: "Limited Edition" | null;
   since: string;
+  is_brand: boolean;
+  brand_name: string | null;
 };
 
 type Props = {
@@ -61,6 +63,8 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [addTagsOptions, addSetTagsOptions] = useState<TagOption[]>([]);
   const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
   const [dropdownConfig, setDropdownConfig] = useState<any[]>([]);
+  const [brandsOptions, setBrandsOptions] = useState<{ label: string; value: string }[]>([]);
+
 
 
   // fetch master categories
@@ -167,7 +171,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   // fetch tags
   useEffect(() => {
     const fetchTags = async () => {
-      const { data, error } = await supabase.from('tags').select('id, category').eq("is_brand", false); ;
+      const { data, error } = await supabase.from('tags').select('id, category');
       if (!error && data) {
         setTagsOptions(data.map(t => ({ id: t.id, name: t.category })));
         addSetTagsOptions(data.map(t => ({ id: t.id, name: t.category })));
@@ -237,7 +241,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: null, subServices: [], price: 0, duration: '', speciality: false },
+        { id: newId, additionalService: null, subService: null, price: 0, duration: '', speciality: false },
       ],
     });
   };
@@ -263,10 +267,14 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
       if (!error && data?.data) {
         setDropdownConfig(data.data.dropdowns);
+        setBrandsOptions(data.data.brands?.[0]?.options || []);
       }
     };
     fetchConfig();
   }, []);
+
+
+
   return (
     <fieldset id="first-field">
       <div className="container-service space-service">
@@ -440,7 +448,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         onChange={(e) => {
                           const next = (value.additional || []).map(r =>
                             r.id === row.id
-                              ? { ...r, additionalService: e.value ? e.value.id : null, subServices: [] }
+                              ? { ...r, additionalService: e.value ? e.value.id : null,subService: null }
                               : r
                           );
                           onChange({ additional: next });
@@ -459,13 +467,13 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     <div className="form-group">
                       <label>Sub Service</label>
                       <Dropdown
-                        value={row.subServices?.[0] ?? null} // pick the first if array stored
+                        value={row.subService ?? null}   // 👈 single id
                         options={availableSubTags}
                         optionLabel="name"
                         optionValue="id"
                         onChange={(e) => {
                           const next = (value.additional || []).map(r =>
-                            r.id === row.id ? { ...r, subServices: e.value ? [e.value] : [] } : r
+                            r.id === row.id ? { ...r, subService: e.value ?? null } : r
                           );
                           onChange({ additional: next });
                         }}
@@ -475,6 +483,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                         className="w-100"
                         disabled={!row.additionalService}
                       />
+
 
                     </div>
                   </div>
@@ -615,19 +624,56 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
 
 
         </div>
-        <div className="col-md-12">
-          <div className="form-group">
-            <label>Start Since (Year)</label>
-            <Dropdown
-              value={value.since}
-              options={years.map(y => ({ label: y, value: y }))}
-              onChange={(e) => onChange({ since: e.value })}
-              placeholder="Select Year"
-              className="w-100"
-            />
+        <div className='row'>
+          <div className="col-md-6">
+            <div className="form-group">
+              <label>Start Since (Year)</label>
+              <Dropdown
+                value={value.since}
+                options={years.map(y => ({ label: y, value: y }))}
+                onChange={(e) => onChange({ since: e.value })}
+                placeholder="Select Year"
+                className="w-100"
+              />
+            </div>
           </div>
-        </div>
+          <div className="col-md-1">
+            <div className="form-group">
+              <label style={{ width: '100%' }}>Is Brand?</label>
+              <div className="status-toggle mb-3">
+                <input
+                  type="checkbox"
+                  id="is_brand_toggle"
+                  className="check"
+                  checked={value.is_brand}
+                  onChange={(e) => onChange({ is_brand: e.target.checked, brand_name: null })}
+                />
+                <label htmlFor="is_brand_toggle" className="checktoggle" ></label>
+              </div>
+            </div>
+          </div>
 
+          {value.is_brand && (
+            <div className="col-md-5">
+              <div className="form-group">
+                <label>Select Brand</label>
+                <Dropdown
+                  value={value.brand_name}                 // this is "limited-edition" from DB
+                  options={brandsOptions}                  // { label, value }
+                  optionLabel="label"                      // show the label
+                  optionValue="value"                      // compare by value
+                  onChange={(e) => onChange({ brand_name: e.value })}
+                  placeholder="Select Brand"
+                  className="w-100"
+                  showClear
+                  filter
+                />
+              </div>
+            </div>
+          )}
+
+
+        </div>
         <div className="col-md-12">
           <div className="form-group service-editor">
             <label>Description</label>

@@ -37,19 +37,19 @@ const SortingTags = () => {
     }, []);
 
     // 🔹 Add Category
-    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean,brand: boolean) => {
+    const handleAddCategory = async (category: string, slug: string, image_url: string, featured: boolean) => {
         const { error } = await supabase
             .from('tags')
-            .insert([{ category, category_slug: slug, image_url: image_url, is_link: featured,is_brand: brand, user_id: profile.id }]);
+            .insert([{ category, category_slug: slug, image_url: image_url, is_link: featured, user_id: profile.id }]);
 
         if (!error) fetchCategories();
     };
 
     // 🔹 Update Category
-    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean,brand: boolean) => {
+    const handleUpdateCategory = async (id: number, category: string, slug: string, image_url: string, featured: boolean,) => {
         const { error } = await supabase
             .from('tags')
-            .update({ category, category_slug: slug, image_url: image_url, is_link: featured,is_brand: brand })
+            .update({ category, category_slug: slug, image_url: image_url, is_link: featured})
             .eq('id', id);
 
         if (!error) {

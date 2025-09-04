@@ -12,7 +12,7 @@ type Option = { id: number; name: string };
 type TagOption = { id: number; name: string };
 type Info = {
   title: string;
-  since:string;
+  since: string;
   masterCategory: Option[];   // city in UI
   category: Option[];              // sectors (multi)
   mainCategory: Option[];          // main categories (multi)
@@ -29,6 +29,8 @@ type Info = {
   price_range: string | null;
   quality: string | null;
   sp_niche: string | null;
+  is_brand: boolean;       // ✅ add this
+  brand_name: string | null; // ✅ add this
 };
 
 
@@ -67,7 +69,7 @@ const emptySlot: Slot = { id: 1, from: '00:00:00', to: '00:00:00', slots: '' };
 const initialForm: AddServiceForm = {
   info: {
     title: '',
-    since:'',
+    since: '',
     masterCategory: [],
     category: [],
     mainCategory: [],
@@ -84,6 +86,8 @@ const initialForm: AddServiceForm = {
     price_range: null,
     quality: null,
     sp_niche: null,
+    is_brand: false,       // ✅ default
+    brand_name: null
   },
   availability: {
     all: [{ ...emptySlot }],
@@ -302,7 +306,8 @@ const AddService = () => {
         meta_title: form.seo.metaTitle || null,
         meta_description: form.seo.metaDescription || null,
         meta_keywords: form.seo.metaKeywords ?? [],
-
+        is_brand: form.info.is_brand,
+        brand_name: form.info.brand_name ?? null,
         status: 'draft',
         // 🆕 NEW: Extra details stored in JSON
         extra_details: {
@@ -312,6 +317,7 @@ const AddService = () => {
           price_range: form.info.price_range ?? null,
           quality: form.info.quality ?? null,
           sp_niche: form.info.sp_niche ?? null,
+          
         }
       };
 

@@ -31,6 +31,8 @@ type Info = {
   price_range?: string | null;
   quality?: string | null;
   sp_niche?: string | null;
+  is_brand: boolean;       // ✅ add this
+  brand_name: string | null; // ✅ add this
 };
 
 type Slot = { id: number; from: string; to: string; slots: string };
@@ -145,6 +147,9 @@ const EditService = () => {
           price_range: data.extra_details?.price_range ?? null,
           quality: data.extra_details?.quality ?? null,
           sp_niche: data.extra_details?.sp_niche ?? null,
+          is_brand: data.is_brand ?? false,
+          brand_name: data.brand_name ?? null,
+
         },
         availability: data.availability || { all: [], perDay: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [] } },
         location: { address: data.address, lat: data.lat, lng: data.lng },
@@ -193,6 +198,9 @@ const EditService = () => {
         quality: form.info.quality ?? null,
         sp_niche: form.info.sp_niche ?? null,
       },
+      is_brand: form.info.is_brand,
+      brand_name: form.info.brand_name,
+
     };
 
     const { error } = await supabase

@@ -9,7 +9,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 type AdditionalRow = {
   id: number;
   additionalService: number | null; // tag id
-  subServices: number[];
+  subService: number | null;
   price: number;
   duration: string;
   speciality: boolean;
@@ -39,6 +39,8 @@ export type ServiceInformationValue = {
   quality?: string | null;
   sp_niche?: string | null;
   since?: string | null;
+  is_brand: boolean;
+  brand_name: string | null;
 };
 
 type Props = {
@@ -57,6 +59,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   const [subTagsOptions, setSubTagsOptions] = useState<TagOption[]>([]);
   const [subTagsByTag, setSubTagsByTag] = useState<Record<number, TagOption[]>>({});
   const [dropdownConfig, setDropdownConfig] = useState<any[]>([]);
+  const [brandsOptions, setBrandsOptions] = useState<{ label: string; value: string }[]>([]);
   // fetch master categories
   useEffect(() => {
     const fetchMasterCategories = async () => {
@@ -189,7 +192,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
     onChange({
       additional: [
         ...(value.additional || []),
-        { id: newId, additionalService: null, subServices: [], price: 0, duration: "", speciality: false, image: null },
+        { id: newId, additionalService: null, subService: null, price: 0, duration: "", speciality: false, image: null },
       ],
     });
   };
@@ -209,12 +212,13 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   useEffect(() => {
     const fetchConfig = async () => {
       const { data, error } = await supabase
-        .from('json_tags')
-        .select('data')
+        .from("json_tags")
+        .select("data")
         .single();
 
       if (!error && data?.data) {
         setDropdownConfig(data.data.dropdowns);
+        setBrandsOptions(data.data.brands?.[0]?.options || []);
       }
     };
     fetchConfig();
@@ -341,16 +345,17 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
                     <div className="form-group">
                       <label>Sub Service</label>
                       <Dropdown
-                        value={row.subServices[0] ?? null}
+                        value={row.subService ?? null}         // single id
                         options={subs}
                         optionLabel="name"
                         optionValue="id"
                         onChange={e =>
-                          handleRowChange(row.id, "subServices", e.value ? [e.value] : [])
+                          handleRowChange(row.id, "subService", e.value ?? null)
                         }
                         placeholder="Select sub service"
                         className="w-100"
                       />
+
                     </div></div>
                   {/* Price */}
                   <div className="col-md-4">
@@ -450,24 +455,62 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
           </div>
         </div>
 
-       {/* Since Year */}
-  <div className="col-md-12">
-    <div className="form-group">
-      <label>Start Since (Year)</label>
-      <Dropdown
-        value={value.since ?? null}
-        options={Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
-          const year = 1900 + i;
-          return { label: year.toString(), value: year.toString() };
-        }).reverse()}   // latest year first
-        onChange={(e) => onChange({ since: e.value })}
-        placeholder="Select Year"
-        className="w-100"
-        showClear
-        filter
-      />
-    </div>
-  </div>
+        <div className='row'>
+          <div className="col-md-6">
+            <div className="form-group">
+              <label>Start Since (Year)</label>
+              <Dropdown
+                value={value.since ?? null}
+                options={Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                  const year = 1900 + i;
+                  return { label: year.toString(), value: year.toString() };
+                }).reverse()}   // latest year first
+                onChange={(e) => onChange({ since: e.value })}
+                placeholder="Select Year"
+                className="w-100"
+                showClear
+                filter
+              />
+            </div>
+          </div>
+          <div className="col-md-1">
+            <div className="form-group">
+              <label style={{ width: '100%' }}>Is Brand?</label>
+              <div className="status-toggle mb-3">
+                <input
+                  type="checkbox"
+                  id="is_brand_toggle"
+                  className="check"
+                  checked={value.is_brand}
+                  onChange={(e) => onChange({ is_brand: e.target.checked, brand_name: null })}
+                />
+                <label htmlFor="is_brand_toggle" className="checktoggle"></label>
+              </div>
+            </div>
+          </div>
+
+          {value.is_brand && (
+            <div className="col-md-5">
+              <div className="form-group">
+                <label>Select Brand</label>
+                <Dropdown
+                  value={value.brand_name}
+                  options={brandsOptions}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(e) => onChange({ brand_name: e.value })}
+                  placeholder="Select Brand"
+                  className="w-100"
+                  showClear
+                  filter
+                />
+              </div>
+            </div>
+          )}
+
+
+
+        </div>
 
         <div className="col-md-12">
           <div className="form-group service-editor">
