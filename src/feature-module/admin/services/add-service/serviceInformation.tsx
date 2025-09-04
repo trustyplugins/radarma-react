@@ -167,7 +167,7 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
   // fetch tags
   useEffect(() => {
     const fetchTags = async () => {
-      const { data, error } = await supabase.from('tags').select('id, category');
+      const { data, error } = await supabase.from('tags').select('id, category').eq("is_brand", false); ;
       if (!error && data) {
         setTagsOptions(data.map(t => ({ id: t.id, name: t.category })));
         addSetTagsOptions(data.map(t => ({ id: t.id, name: t.category })));

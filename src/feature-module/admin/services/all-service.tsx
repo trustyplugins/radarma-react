@@ -144,10 +144,10 @@ const AllService: React.FC = () => {
 
       if (role === 'A2' && userId) q = q.eq('user_id', userId);
 
-      if (selectedSort.key === 'az')  q = q.order('title', { ascending: true,  nullsFirst: true });
-      if (selectedSort.key === 'za')  q = q.order('title', { ascending: false, nullsLast: true });
+      if (selectedSort.key === 'az') q = q.order('title', { ascending: true, nullsFirst: true });
+      if (selectedSort.key === 'za') q = q.order('title', { ascending: false, nullsLast: true });
       if (selectedSort.key === 'new') q = q.order('created_at', { ascending: false, nullsLast: true });
-      if (selectedSort.key === 'old') q = q.order('created_at', { ascending: true,  nullsFirst: true });
+      if (selectedSort.key === 'old') q = q.order('created_at', { ascending: true, nullsFirst: true });
 
       const { data, error } = await q;
       if (error) throw error;
@@ -204,9 +204,9 @@ const AllService: React.FC = () => {
   const renderStatus = (res: ListingRow) => {
     const cls =
       res.status === 'Active' ? 'badge-active' :
-      res.status === 'Delete' ? 'badge-delete' :
-      res.status === 'Pending' ? 'badge-pending' :
-      res.status === 'Inactive' ? 'badge-inactive' : '';
+        res.status === 'Delete' ? 'badge-delete' :
+          res.status === 'Pending' ? 'badge-pending' :
+            res.status === 'Inactive' ? 'badge-inactive' : '';
     return <h6 className={cls}>{res.status}</h6>;
   };
 
@@ -224,20 +224,35 @@ const AllService: React.FC = () => {
 
   const renderActions = (res: ListingRow) => (
     <div className="action-language">
-      {/* <Link className="table-edit" to={`/listings/view-listing/${res.id}`}>
+      <Link
+        className="table-edit"
+        style={{ width: "auto",marginRight:'10px' }}
+        to={`/services/edit-service/${res.id}`}
+        title="Edit"
+      >
         <i className="fa-regular fa-pen-to-square"></i>
-        <span>View</span>
-      </Link> */}
-      <Link className="table-edit" style={{width:'auto'}} to={`/services/edit-service/${res.id}`}>
-        <i className="fa-regular fa-pen-to-square"></i>
-        {/* <span>Edit</span> */}
       </Link>
-      <button className="table-delete" style={{width:'auto'}} onClick={() => onDelete(res.id)}>
+
+      <button
+        className="table-delete"
+        style={{ width: "auto",marginRight:'10px' }}
+        onClick={() => onDelete(res.id)}
+        title="Delete"
+      >
         <i className="fa-solid fa-trash-can"></i>
-        {/* <span>Delete</span> */}
+      </button>
+
+      <button
+        className="table-publish"
+        style={{ width: "auto" }}
+        onClick={() => onPublish(res.id)}
+        title="Publish"
+      >
+        <i className="fa-solid fa-upload"></i>
       </button>
     </div>
   );
+
 
   const totalText = useMemo(
     () => `Showing 1-${Math.min(rows.length, 10)} of ${rows.length} results`,
