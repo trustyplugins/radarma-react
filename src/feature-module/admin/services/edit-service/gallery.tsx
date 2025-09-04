@@ -10,14 +10,15 @@ type Props = {
   onChange: (updater: (g: G) => G) => void;
   prevTab: () => void;
   nextTab: () => void;
-  userRole: string; 
+  userRole: string;
+  onUpdate: () => void;
 };
 
 const ACCEPTED = ['image/jpeg', 'image/png'];
 const MAX_FILES = 12;         // tweak as needed
 const MAX_SIZE_MB = 8;        // tweak as needed
 
-const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab ,userRole}) => {
+const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole, onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -121,7 +122,7 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab ,userRole}
                   accept={ACCEPTED.join(',')}
                   multiple
                   onChange={(e) => addFiles(e.target.files)}
-                 
+
                 />
                 <Link to="#" onClick={onBrowseClick}>Browse</Link>
               </div>
@@ -175,17 +176,33 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab ,userRole}
 
       <div className="bottom-btn">
         <div className="field-btns">
+
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={onUpdate}
+            style={{ marginRight: '10px' }}
+          >
+            Update
+          </button>
+
           <button className="btn btn-prev prev_btn" type="button" onClick={prevTab}>
             <i className="fas fa-arrow-left" /> Prev
           </button>
-          <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
           {userRole === "A1" && (
-           <> Next <i className="fas fa-arrow-right" /></>
-           )}
-           {userRole === "A2" && (
-           <>Update</>
-           )}
-          </button>
+            <>
+              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
+                Next <i className="fas fa-arrow-right" />
+              </button>
+            </>
+          )}
+          {/* {userRole === "A2" && (
+            <>
+              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
+                Next <i className="fas fa-arrow-right" />
+              </button>
+            </>
+          )} */}
         </div>
       </div>
     </>

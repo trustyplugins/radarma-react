@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { GoogleMap, MarkerF, useLoadScript, Autocomplete,useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, MarkerF, useLoadScript, Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 
 const libraries: ('places')[] = ['places'];
 const containerStyle = { width: '100%', height: '360px', borderRadius: 8 };
@@ -13,14 +13,15 @@ type Props = {
   onChange: (patch: Partial<LocationValue>) => void;
   prevTab: () => void;
   nextTab: () => void;
+  onUpdate: () => void; 
 };
 
-const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
+const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab,onUpdate }) => {
   const { isLoaded, loadError } = useJsApiLoader({
-   // id: 'google-map-script',
+    // id: 'google-map-script',
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries,
-  }); 
+  });
 
   // always keep a valid number center for the map
   const safeLat = Number.isFinite(value.lat as number) ? (value.lat as number) : fallbackCenter.lat;
@@ -33,32 +34,32 @@ const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
 
   useEffect(() => {
     if (isLoaded) {
-    // Geolocate only when we don't have a saved location
-    if (!value.lat || !value.lng) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setMarker({ lat, lng });
-          onChange({ lat, lng }); // set immediately so marker has numbers
-          mapRef.current?.panTo({ lat, lng });
+      // Geolocate only when we don't have a saved location
+      if (!value.lat || !value.lng) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setMarker({ lat, lng });
+            onChange({ lat, lng }); // set immediately so marker has numbers
+            mapRef.current?.panTo({ lat, lng });
 
-          // reverse geocode to fill address
-          const geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-            if (status === 'OK' && results?.[0]) {
-              onChange({ address: results[0].formatted_address });
-            }
-          });
-        },
-        () => {
-          setMarker(fallbackCenter);
-        }
-      );
-    } else {
-      setMarker({ lat: safeLat, lng: safeLng });
+            // reverse geocode to fill address
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+              if (status === 'OK' && results?.[0]) {
+                onChange({ address: results[0].formatted_address });
+              }
+            });
+          },
+          () => {
+            setMarker(fallbackCenter);
+          }
+        );
+      } else {
+        setMarker({ lat: safeLat, lng: safeLng });
+      }
     }
-  }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
@@ -123,7 +124,7 @@ const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
             <div className="form-group">
               <label>Address</label>
               {isLoaded ? (
-                <Autocomplete onLoad={(ac) => {autoRef.current = ac;ac.setComponentRestrictions({ country: "in" });}} onPlaceChanged={onAddressPlaceChanged}>
+                <Autocomplete onLoad={(ac) => { autoRef.current = ac; ac.setComponentRestrictions({ country: "in" }); }} onPlaceChanged={onAddressPlaceChanged}>
                   <input
                     type="text"
                     className="form-control"
@@ -199,12 +200,30 @@ const Location: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
         <div className="col-md-12">
           <div className="bottom-btn">
             <div className="field-btns">
-              <button className="btn btn-prev prev_btn" type="button" onClick={prevTab}>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={onUpdate}
+                style={{ marginRight: '10px' }}
+              >
+                Update
+              </button>
+              <button
+                className="btn btn-prev prev_btn"
+                type="button"
+                onClick={prevTab}
+                style={{ marginRight: '10px' }}
+              >
                 <i className="fas fa-arrow-left" /> Prev
               </button>
-              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
+              <button
+                className="btn btn-primary next_btn"
+                type="button"
+                onClick={nextTab}
+              >
                 Next <i className="fas fa-arrow-right" />
               </button>
+
             </div>
           </div>
         </div>

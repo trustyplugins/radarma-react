@@ -128,7 +128,7 @@ const EditSeo: React.FC<Props> = ({ value, onChange, prevTab, onSave, saving }) 
             disabled={!!saving || !value.slug}
             title={!value.slug ? 'Slug is required' : undefined}
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Updating…' : 'Update'}
           </button>
         </div>
       </div>

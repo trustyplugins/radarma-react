@@ -1,197 +1,410 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Column } from 'primereact/column';
+import { Link } from 'react-router-dom';
+import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import { Dropdown } from 'primereact/dropdown';
 import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { useSelector } from 'react-redux';
-import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
-import { all_routes } from '../../../core/data/routes/all_routes';
-import { deletedServices } from '../../../core/models/interface';
 import * as Icon from 'react-feather';
-import DeletedServicesModal from '../common/modals/deleted-services-modal';
+import { all_routes } from '../../../core/data/routes/all_routes';
+import supabase from '../../../supabaseClient';
 
-const DeletedServices = () => {
-  const data = useSelector(
-    (state: any) => state.deleted_services_data,
-  );
+type Role = 'A1' | 'A2' | null;
+type SortOpt = { name: string; key: 'az' | 'za' | 'new' | 'old' };
+const sortOptions: SortOpt[] = [
+  { name: 'A - Z', key: 'az' },
+  { name: 'Z - A', key: 'za' },
+  { name: 'Newest', key: 'new' },
+  { name: 'Oldest', key: 'old' },
+];
+
+/** Raw row from listings (IDs only) */
+type ListingRaw = {
+  id: string;
+  title: string;
+  city_id: number | null;
+  sector_ids: number[] | null;
+  main_category_ids: number[] | null;
+  sub_category_ids: number[] | null;
+  tag_ids: number[] | null;
+  sub_tag_ids: number[] | null;
+  price: number | null;
+  status: string;
+  slug: string;
+  user_id: string | null;
+  created_at: string;
+  gallery_urls: string[] | null;
+};
+
+/** Row we render (names resolved) */
+type ListingRow = {
+  id: string;
+  title: string;
+  city: string;              // single name
+  sector: string;            // comma-joined
+  main_category: string;     // comma-joined
+  sub_category: string;      // comma-joined
+  tags: string;              // comma-joined
+  sub_tags: string;          // comma-joined
+  status: string;
+  slug: string;
+  user_id: string | null;
+  created_at: string;
+  gallery_urls: string[] | null;
+};
+
+const ActiveServices: React.FC = () => {
   const routes = all_routes;
 
-  const [selectedValue, setSelectedValue] = useState(null);
-  const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
+  const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<Role>(null);
+  const [selectedSort, setSelectedSort] = useState<SortOpt>(sortOptions[2]);
+  const [rows, setRows] = useState<ListingRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  const actionButton = () => {
+  // --- lookup maps ---
+  const [cityMap, setCityMap] = useState<Record<number, string>>({});
+  const [sectorMap, setSectorMap] = useState<Record<number, string>>({});
+  const [mainCatMap, setMainCatMap] = useState<Record<number, string>>({});
+  const [subCatMap, setSubCatMap] = useState<Record<number, string>>({});
+  const [tagMap, setTagMap] = useState<Record<number, string>>({});
+  const [subTagMap, setSubTagMap] = useState<Record<number, string>>({});
+
+  // auth + role
+  useEffect(() => {
+    (async () => {
+      setErr(null);
+      const { data: auth, error: authErr } = await supabase.auth.getUser();
+      if (authErr) { setErr(authErr.message); return; }
+      const uid = auth.user?.id ?? null;
+      setUserId(uid);
+
+      if (!uid) { setRole(null); return; }
+      const { data: ru, error: ruErr } = await supabase
+        .from('rd_users')
+        .select('role')
+        .eq('user_id', uid)
+        .maybeSingle();
+      if (ruErr) { setErr(ruErr.message); return; }
+      setRole((ru?.role === 'A1' || ru?.role === 'A2') ? ru.role : null);
+    })();
+  }, []);
+
+  // load all lookups once
+  useEffect(() => {
+    (async () => {
+      try {
+        const [
+          citiesRes,
+          sectorsRes,
+          mainsRes,
+          subsRes,
+          tagsRes,
+          subTagsRes,
+        ] = await Promise.all([
+          supabase.from('cities').select('id, category'),
+          supabase.from('sectors').select('id, category'),
+          supabase.from('main_categories').select('id, category'),
+          supabase.from('sub_categories').select('id, category'),
+          supabase.from('tags').select('id, category'),
+          supabase.from('sub_tags').select('id, category'),
+        ]);
+
+        const toMap = (rows?: any[]) => {
+          const m: Record<number, string> = {};
+          (rows ?? []).forEach(r => { m[r.id] = r.category; });
+          return m;
+        };
+
+        setCityMap(toMap(citiesRes.data));
+        setSectorMap(toMap(sectorsRes.data));
+        setMainCatMap(toMap(mainsRes.data));
+        setSubCatMap(toMap(subsRes.data));
+        setTagMap(toMap(tagsRes.data));
+        setSubTagMap(toMap(subTagsRes.data));
+      } catch (e: any) {
+        setErr(e.message ?? 'Failed to load lookups.');
+      }
+    })();
+  }, []);
+
+  // helper: map ids -> names (joined)
+  const joinNames = (ids: number[] | null | undefined, map: Record<number, string>) =>
+    (ids ?? []).map(id => map[id]).filter(Boolean).join(', ');
+
+  // listings fetch + hydrate
+  const fetchListings = async () => {
+    if (role === null) return; // still resolving role
+    setLoading(true);
+    setErr(null);
+    try {
+      let q = supabase
+        .from('listings')
+        .select('id,title,city_id,sector_ids,main_category_ids,sub_category_ids,tag_ids,sub_tag_ids,price,status,slug,user_id,created_at,gallery_urls').eq("status","deleted");
+
+      if (role === 'A2' && userId) q = q.eq('user_id', userId);
+
+      if (selectedSort.key === 'az') q = q.order('title', { ascending: true, nullsFirst: true });
+      if (selectedSort.key === 'za') q = q.order('title', { ascending: false, nullsLast: true });
+      if (selectedSort.key === 'new') q = q.order('created_at', { ascending: false, nullsLast: true });
+      if (selectedSort.key === 'old') q = q.order('created_at', { ascending: true, nullsFirst: true });
+
+      const { data, error } = await q;
+      if (error) throw error;
+
+      const hydrated: ListingRow[] = (data as ListingRaw[]).map(r => ({
+        id: r.id,
+        title: r.title,
+        city: r.city_id ? (cityMap[r.city_id] ?? '—') : '—',
+        sector: joinNames(r.sector_ids, sectorMap),
+        main_category: joinNames(r.main_category_ids, mainCatMap),
+        sub_category: joinNames(r.sub_category_ids, subCatMap),
+        tags: joinNames(r.tag_ids, tagMap),
+        sub_tags: joinNames(r.sub_tag_ids, subTagMap),
+        status: r.status,
+        slug: r.slug,
+        user_id: r.user_id,
+        created_at: r.created_at,
+        gallery_urls: r.gallery_urls,
+      }));
+
+      setRows(hydrated);
+    } catch (e: any) {
+      setErr(e.message ?? 'Failed to load listings.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (role !== null) fetchListings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, userId, selectedSort.key, cityMap, sectorMap, mainCatMap, subCatMap, tagMap, subTagMap]);
+
+  // render helpers
+  const renderService = (res: ListingRow) => {
+    const cover = res.gallery_urls?.[0];
     return (
-      <div className="action-language">
-        <Link className="table-edit" to="/admin/edit-service">
-          <i className="fa-regular fa-pen-to-square" />
-          <span>Edit</span>
-        </Link>
-        <Link
-          className="table-delete"
-          to="#"
-          data-bs-toggle="modal"
-          data-bs-target="#delete-item"
-        >
-          <i className="fa-solid fa-trash-can" />
-          <span>Delete</span>
-        </Link>
-      </div>
+      <Link to={`/listings/view-listing/${res.id}`} className="table-imgname">
+        {cover ? (
+          <img
+            src={cover}
+            className="me-2"
+            alt="cover"
+            style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }}
+          />
+        ) : (
+          <ImageWithBasePath src="assets/admin/img/services/service-01.jpg" className="me-2" alt="img" />
+        )}
+        <span>{res.title}</span>
+      </Link>
     );
   };
 
-  const statusBar = () => {
-    return (
-      <div>
-        <h6 className="badge-delete">Delete</h6>
-      </div>
-    );
+  const renderStatus = (res: ListingRow) => {
+    const cls =
+      res.status === 'Active' ? 'badge-active' :
+        res.status === 'Delete' ? 'badge-delete' :
+          res.status === 'Pending' ? 'badge-pending' :
+            res.status === 'Inactive' ? 'badge-inactive' : '';
+    return <h6 className={cls}>{res.status}</h6>;
   };
 
-  const Servicesdata = (data: deletedServices) => {
-    return (
-      <div>
-        <div className="table-imgname">
-          <Link to="/view-service">
-            <ImageWithBasePath src={data.image} className="me-2" alt="img" />
-            <span>{data.name}</span>
-          </Link>
-        </div>
-      </div>
-    );
+  const onDelete = async (id: string) => {
+    if (!confirm("⚠️ This will permanently delete the listing. Are you sure?")) return;
+  
+    setLoading(true);
+    setErr(null);
+  
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .delete()
+        .eq("id", id);
+  
+      if (error) throw error;
+  
+      // Refresh table after deletion
+      await fetchListings();
+    } catch (err: any) {
+      console.error(err);
+      setErr(err.message ?? "Failed to delete listing.");
+    } finally {
+      setLoading(false);
+    }
   };
-  const navigate = useNavigate();
+  
 
-  const handleButtonClick = () => {
-    navigate(routes.addServices);
+
+  const renderActions = (res: ListingRow) => (
+    <div className="action-language">
+      <Link
+        className="table-edit"
+        style={{ width: "auto", marginRight: '10px' }}
+        to={`/services/edit-service/${res.id}`}
+        title="Edit"
+      >
+        <i className="fa-regular fa-pen-to-square"></i>
+      </Link>
+
+      <button
+        className="table-delete"
+        style={{ width: "auto", marginRight: '10px' }}
+        onClick={() => onDelete(res.id)}
+        title="Delete"
+      >
+        <i className="fa-solid fa-trash-can"></i>
+      </button>
+
+      {role === "A1" && (
+        <>
+          <button
+            className="table-publish"
+            style={{ width: "auto", marginRight: '10px' }}
+            onClick={() => onPublish(res.id, "active")}
+            title="Publish"
+          >
+            <i className="fa-solid fa-upload"></i>
+          </button>
+
+          <button
+            className="table-draft"
+            style={{ width: "auto" }}
+            onClick={() => onPublish(res.id, "draft")}
+            title="Move to Draft"
+          >
+            <i className="fa-solid fa-file"></i>
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const onPublish = async (id: string, newStatus: "active" | "draft") => {
+    if (!confirm(`Set this listing to ${newStatus}?`)) return;
+
+    setLoading(true);
+    setErr(null);
+
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: newStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+      await fetchListings(); // refresh table
+    } catch (err: any) {
+      console.error(err);
+      setErr(err.message ?? "Failed to update listing status.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+
+
+  const totalText = useMemo(
+    () => `Showing 1-${Math.min(rows.length, 10)} of ${rows.length} results`,
+    [rows.length]
+  );
 
   return (
-    <>
-      <div className="page-wrapper page-settings">
-        <div className="content">
-          <div className="content-page-header content-page-headersplit">
-            <h5>Deleted Services</h5>
-            <div className="list-btn">
-              <ul>
-                <li>
-                  <div className="filter-sorting">
-                    <ul>
-                      <li>
-                        <Link to="#" className="filter-sets">
-                          <Icon.Filter className="react-feather-custom me-2" />
-                          Filter
-                        </Link>
-                      </li>
-                      <li>
-                        <span>
-                          <ImageWithBasePath
-                            src="assets/img/icons/sort.svg"
-                            className="me-2"
-                            alt="img"
-                          />
-                        </span>
-                        <div className="review-sort">
-                          <Dropdown
-                            value={selectedValue}
-                            onChange={(e) => setSelectedValue(e.value)}
-                            options={value}
-                            optionLabel="name"
-                            placeholder="A - Z"
-                            className="select admin-select-breadcrumb"
-                          />
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </li>
-
-                <li>
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleButtonClick}
-                  >
-                    <i className="fa fa-plus me-2" />
-                    Add Services
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-12">
-              <div className="tab-sets">
-                <div className="tab-contents-sets">
+    <div className="page-wrapper page-settings">
+      <div className="content">
+        <div className="content-page-header content-page-headersplit">
+          <h5>All Listings</h5>
+          <div className="list-btn">
+            <ul>
+              <li>
+                <div className="filter-sorting">
                   <ul>
                     <li>
-                      <Link to={routes.allServices}>All Services</Link>
-                    </li>
-                    <li>
-                      <Link to={routes.activeServices}>Active</Link>
-                    </li>
-                    <li>
-                      <Link to={routes.pendingServices}>Pending </Link>
-                    </li>
-                    <li>
-                      <Link to={routes.inActiveServices}>Inactive </Link>
-                    </li>
-                    <li>
-                      <Link to="/deleted-services" className="active">
-                        Deleted
+                      <Link to="#" className="filter-sets" onClick={(e) => e.preventDefault()}>
+                        <Icon.Filter className="react-feather-custom me-2" />
+                        Filter
                       </Link>
+                    </li>
+                    <li>
+                      <span>
+                        <ImageWithBasePath src="assets/admin/img/icons/sort.svg" className="me-2" alt="img" />
+                      </span>
+                      <div className="review-sort">
+                        <Dropdown
+                          value={selectedSort}
+                          onChange={(e) => setSelectedSort(e.value)}
+                          options={sortOptions}
+                          optionLabel="name"
+                          placeholder="A - Z"
+                          className="select admin-select-breadcrumb"
+                        />
+                      </div>
                     </li>
                   </ul>
                 </div>
-                <div className="tab-contents-count">
-                  <h6>Showing 8-10 of 84 results</h6>
-                </div>
+              </li>
+              <li>
+                <Link className="btn btn-primary" to="/services/add-service">
+                  <i className="fa fa-plus me-2" />
+                  Create Listing
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {err && <div className="alert alert-danger">{err}</div>}
+
+        <div className="row">
+          <div className="col-12">
+            <div className="tab-sets">
+              <div className="tab-contents-sets">
+                <ul>
+                  <li><Link to="/services/all-services" >All Listings</Link></li>
+                  <li><Link to="/services/active-services" >Active</Link></li>
+                  <li><Link to="/services/pending-services" >Draft </Link></li>
+                  <li><Link to="/services/deleted-services" className="active">Deleted </Link></li>
+                </ul>
+              </div>
+              <div className="tab-contents-count">
+                <h6>{loading ? 'Loading…' : totalText}</h6>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="row">
-            <div className="col-12 ">
-              <div className="table-resposnive">
+        <div className="row">
+          <div className="col-12 ">
+            <div className="table-resposnive table-div">
+              <div className="table datatable">
                 <DataTable
-                  paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                  value={rows}
+                  loading={loading}
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                   currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                  value={data}
+                  tableStyle={{ minWidth: '60rem' }}
                 >
-                  <Column sortable field="id" header="Id"></Column>
-                  <Column
-                    sortable
-                    field="image"
-                    header="Service"
-                    body={Servicesdata}
-                  ></Column>
-                  <Column sortable field="category" header="Category"></Column>
-                  <Column sortable field="sub" header="Sub-Category"></Column>
-
-                  <Column sortable field="amt" header="Amount"></Column>
-                  <Column sortable field="date1" header="Date"></Column>
-                  <Column
-                    sortable
-                    field="status"
-                    header="Status"
-                    body={statusBar}
-                  ></Column>
-                  <Column sortable field="created" header="Created By"></Column>
-
-                  <Column
-                    sortable
-                    field="Action"
-                    header="Action"
-                    body={actionButton}
-                  ></Column>
+                  <Column field="title" header="Title" sortable body={renderService} />
+                  {/* <Column field="city" header="City" sortable /> */}
+                  <Column field="sector" header="Sector" sortable />
+                  <Column field="main_category" header="Main Category" sortable />
+                  {/* <Column field="sub_category" header="Sub Category(ies)" sortable />
+                  <Column field="tags" header="Tags" sortable />
+                  <Column field="sub_tags" header="Sub Tags" sortable /> */}
+                  <Column field="status" header="Status" sortable body={renderStatus} />
+                  {/* <Column field="user_id" header="Created By" body={renderOwner} /> */}
+                  <Column header="Action" body={renderActions} />
                 </DataTable>
               </div>
             </div>
           </div>
         </div>
-        <DeletedServicesModal />
       </div>
-    </>
+    </div>
   );
 };
 
-export default DeletedServices;
+export default ActiveServices;

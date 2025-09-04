@@ -35,13 +35,14 @@ type Props = {
   onChange: (patch: Partial<AvailabilityValue>) => void;
   prevTab: () => void;
   nextTab: () => void;
+  onUpdate: () => void;
 };
 
 const fmt = 'HH:mm:ss';
 const toD = (s: string) => (s ? dayjs(s, fmt) : dayjs('00:00:00', fmt));
 const fromD = (d: Dayjs | null) => (d ? d.format(fmt) : '00:00:00');
 
-const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
+const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUpdate }) => {
   // helpers to read/write specific tab list
   const getList = (key: DayKey): Slot[] =>
     key === 'all' ? value.all : value.perDay[key];
@@ -230,12 +231,30 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) =>
         <div className="col-md-12">
           <div className="bottom-btn">
             <div className="field-btns">
-              <button className="btn btn-prev prev_btn" type="button" onClick={prevTab}>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={onUpdate}
+                style={{ marginRight: '10px' }}
+              >
+                Update
+              </button>
+              <button
+                className="btn btn-prev prev_btn"
+                type="button"
+                onClick={prevTab}
+                style={{ marginRight: '10px' }}
+              >
                 <i className="fas fa-arrow-left" /> Prev
               </button>
-              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
+              <button
+                className="btn btn-primary next_btn"
+                type="button"
+                onClick={nextTab}
+              >
                 Next <i className="fas fa-arrow-right" />
               </button>
+
             </div>
           </div>
         </div>

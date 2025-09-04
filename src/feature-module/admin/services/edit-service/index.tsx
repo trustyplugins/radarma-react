@@ -225,11 +225,11 @@ const EditService = () => {
       <div className="content">
         {/* --- Same tab UI as AddService --- */}
         {PageChange === "information" ? (
-          <ServiceInformation value={form.info} onChange={(patch) => setForm(p => ({ ...p!, info: { ...p!.info, ...patch } }))} nextTab={() => setPageChange("booking")} />
+          <ServiceInformation value={form.info} onChange={(patch) => setForm(p => ({ ...p!, info: { ...p!.info, ...patch } }))} nextTab={() => setPageChange("booking")} onUpdate={handleUpdate}  />
         ) : PageChange === "booking" ? (
-          <Availability value={form.availability} onChange={(patch) => setForm(p => ({ ...p!, availability: { ...p!.availability, ...patch } }))} prevTab={() => setPageChange("information")} nextTab={() => setPageChange("location")} />
+          <Availability value={form.availability} onChange={(patch) => setForm(p => ({ ...p!, availability: { ...p!.availability, ...patch } }))} prevTab={() => setPageChange("information")} nextTab={() => setPageChange("location")}  onUpdate={handleUpdate} />
         ) : PageChange === "location" ? (
-          <Location value={form.location} onChange={(patch) => setForm(p => ({ ...p!, location: { ...p!.location, ...patch } }))} prevTab={() => setPageChange("booking")} nextTab={() => setPageChange("gallery")} />
+          <Location value={form.location} onChange={(patch) => setForm(p => ({ ...p!, location: { ...p!.location, ...patch } }))} prevTab={() => setPageChange("booking")} nextTab={() => setPageChange("gallery")}  onUpdate={handleUpdate} />
         ) : PageChange === "gallery" ? (
           //<Gallery value={form.gallery} onChange={(updater) => setForm(p => ({ ...p!, gallery: updater(p!.gallery) }))} prevTab={() => setPageChange("location")} nextTab={() => setPageChange("seo")} />
           <Gallery
@@ -247,6 +247,7 @@ const EditService = () => {
                 handleUpdate();
               }
             }}
+            onUpdate={handleUpdate}
             saving={saving}
             userRole={userRole}
           />

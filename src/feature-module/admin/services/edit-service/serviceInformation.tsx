@@ -47,9 +47,10 @@ type Props = {
   value: ServiceInformationValue;
   onChange: (patch: Partial<ServiceInformationValue>) => void;
   nextTab: () => void;
+  onUpdate: () => void;
 };
 
-const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
+const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab, onUpdate }) => {
 
   const [masterOptions, setMasterOptions] = useState<Option[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
@@ -551,11 +552,24 @@ const ServiceInformation: React.FC<Props> = ({ value, onChange, nextTab }) => {
         <div className="col-md-12">
           <div className="bottom-btn">
             <div className="field-btns">
-              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={onUpdate}
+                style={{marginRight:'10px'}}
+              >
+                Update
+              </button>
+              <button
+                className="btn btn-primary next_btn"
+                type="button"
+                onClick={nextTab}
+              >
                 Next <i className="fas fa-arrow-right" />
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </fieldset>

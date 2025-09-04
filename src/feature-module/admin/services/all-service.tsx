@@ -210,23 +210,35 @@ const AllService: React.FC = () => {
     return <h6 className={cls}>{res.status}</h6>;
   };
 
-  const renderOwner = (res: ListingRow) => {
-    const short = res.user_id ? `${res.user_id.slice(0, 6)}…` : '—';
-    return <span>{short}</span>;
+  const onDelete = async (id: string) => {
+    if (!confirm("Mark this listing as deleted?")) return;
+
+    setLoading(true);
+    setErr(null);
+
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: "deleted" })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await fetchListings(); // refresh table
+    } catch (err: any) {
+      console.error(err);
+      setErr(err.message ?? "Failed to update listing.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const onDelete = async (id: string) => {
-    if (!confirm('Delete this listing?')) return;
-    const { error } = await supabase.from('listings').delete().eq('id', id);
-    if (error) { alert(error.message); return; }
-    setRows(prev => prev.filter(r => r.id !== id));
-  };
 
   const renderActions = (res: ListingRow) => (
     <div className="action-language">
       <Link
         className="table-edit"
-        style={{ width: "auto",marginRight:'10px' }}
+        style={{ width: "auto", marginRight: '10px' }}
         to={`/services/edit-service/${res.id}`}
         title="Edit"
       >
@@ -235,23 +247,59 @@ const AllService: React.FC = () => {
 
       <button
         className="table-delete"
-        style={{ width: "auto",marginRight:'10px' }}
+        style={{ width: "auto", marginRight: '10px' }}
         onClick={() => onDelete(res.id)}
         title="Delete"
       >
         <i className="fa-solid fa-trash-can"></i>
       </button>
 
-      <button
-        className="table-publish"
-        style={{ width: "auto" }}
-        onClick={() => onPublish(res.id)}
-        title="Publish"
-      >
-        <i className="fa-solid fa-upload"></i>
-      </button>
+      {role === "A1" && (
+        <>
+          <button
+            className="table-publish"
+            style={{ width: "auto", marginRight: '10px' }}
+            onClick={() => onPublish(res.id, "active")}
+            title="Publish"
+          >
+            <i className="fa-solid fa-upload"></i>
+          </button>
+
+          <button
+            className="table-draft"
+            style={{ width: "auto" }}
+            onClick={() => onPublish(res.id, "draft")}
+            title="Move to Draft"
+          >
+            <i className="fa-solid fa-file"></i>
+          </button>
+        </>
+      )}
     </div>
   );
+
+  const onPublish = async (id: string, newStatus: "active" | "draft") => {
+    if (!confirm(`Set this listing to ${newStatus}?`)) return;
+
+    setLoading(true);
+    setErr(null);
+
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: newStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+      await fetchListings(); // refresh table
+    } catch (err: any) {
+      console.error(err);
+      setErr(err.message ?? "Failed to update listing status.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   const totalText = useMemo(
@@ -310,11 +358,10 @@ const AllService: React.FC = () => {
             <div className="tab-sets">
               <div className="tab-contents-sets">
                 <ul>
-                  <li><Link to="services" className="active">All Listings</Link></li>
-                  <li><Link to={routes.activeServices}>Active</Link></li>
-                  <li><Link to={routes.pendingServices}>Pending </Link></li>
-                  <li><Link to={routes.inActiveServices}>Inactive </Link></li>
-                  <li><Link to={routes.deletedServices}>Deleted </Link></li>
+                <li><Link to="/services/all-services" className="active">All Listings</Link></li>
+                  <li><Link to="/services/active-services" >Active</Link></li>
+                  <li><Link to="/services/pending-services">Draft </Link></li>
+                  <li><Link to="/services/deleted-services">Deleted </Link></li>
                 </ul>
               </div>
               <div className="tab-contents-count">
