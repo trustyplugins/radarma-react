@@ -10,6 +10,7 @@ import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { useParams } from "react-router-dom";
 import supabase from '../../../supabaseClient';
+import { Flex } from 'antd';
 
 
 const ViewService = () => {
@@ -142,27 +143,50 @@ const ViewService = () => {
             .single();
           provider = data;
         }
+
+
         // 9. Fetch additional services tag info
         let additionalWithNames: any[] = [];
         if (listing.additional?.length) {
-          const ids = listing.additional.map((a: any) => a.additionalService).filter(Boolean);
+          const additionalIds = listing.additional.map((a: any) => a.additionalService).filter(Boolean);
+          const subServiceIds = listing.additional.map((a: any) => a.subService).filter(Boolean);
 
-          if (ids.length) {
-            const { data: tagData } = await supabase
-              .from("tags")
-              .select("id, category")
-              .in("id", ids);
+          const [additionalTags, subTags] = await Promise.all([
+            additionalIds.length
+              ? supabase.from("tags").select("id, category").in("id", additionalIds)
+              : Promise.resolve({ data: [] }),
+            subServiceIds.length
+              ? supabase.from("sub_tags").select("id, category").in("id", subServiceIds)
+              : Promise.resolve({ data: [] }),
+          ]);
 
-            // attach names back to additional services
-            additionalWithNames = listing.additional.map((a: any) => {
-              const tag = tagData?.find(t => t.id === a.additionalService);
-              return {
-                ...a,
-                additionalServiceName: tag ? tag.category : a.additionalService, // fallback to id
-              };
-            });
-          }
+          additionalWithNames = listing.additional.map((a: any) => {
+            const addTag = additionalTags.data?.find(t => t.id === a.additionalService);
+            const subTag = subTags.data?.find(t => t.id === a.subService);
+            return {
+              ...a,
+              additionalServiceName: addTag ? addTag.category : a.additionalService,
+              subServiceName: subTag ? subTag.category : a.subService,
+            };
+          });
         }
+        // Group services by additionalService
+        const groupedServices = additionalWithNames.reduce((acc: any, item: any) => {
+          // ✅ Skip rows without a valid additionalService
+          if (!item.additionalService || !item.additionalServiceName) {
+            return acc;
+          }
+
+          if (!acc[item.additionalService]) {
+            acc[item.additionalService] = {
+              name: item.additionalServiceName,
+              services: [],
+            };
+          }
+          acc[item.additionalService].services.push(item);
+          return acc;
+        }, {});
+
 
         // Combine into one object
         setService({
@@ -175,6 +199,7 @@ const ViewService = () => {
           subTags,
           provider,
           additional: additionalWithNames,
+          groupedServices,
         });
       } catch (err) {
         console.error("Error fetching service:", err);
@@ -183,6 +208,15 @@ const ViewService = () => {
 
     fetchService();
   }, [id]);
+  const weekDays: string[] = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ];
 
   console.log(service);
   return (
@@ -192,7 +226,10 @@ const ViewService = () => {
           <div className="row">
             <div className="col-xl-8">
               <div className="serv-profile">
-                <h2 style={{ textTransform: 'capitalize' }}>{service?.title}</h2>
+                <h2 style={{ textTransform: 'capitalize' }}>{service?.title} </h2>
+                <span style={{ fontSize: '14px', color: '#777', paddingBottom: '10px', display: 'block' }}>
+                  Since {service?.since}
+                </span>
                 <ul>
                   {service?.city?.map((tag: any, idx: number) => (
                     <li key={idx}><span className="badge">{tag.category}</span></li>
@@ -277,67 +314,132 @@ const ViewService = () => {
                       <li>{service?.video_url}</li>
                     </ul>
                   </div>
+                  {/* 🟢 Services Section */}
+                  {/* 🟢 Services Section */}
                   <div className="package-widget pack-service">
-                    <h5>Additional Service</h5>
+                    <h5>Services</h5>
+                    {service?.groupedServices &&
+                      Object.values(service.groupedServices).map((group: any, idx) => (
+                        <div key={idx} style={{ marginBottom: "15px" }}>
+                          {/* Header for Additional Service */}
+                          <h6 style={{ textTransform: "capitalize", fontWeight: "bold" }}>
+                            {group.name}
+                          </h6>
+                          <ul>
+                            {group.services.map((srv: any, i: number) => (
+                              <li
+                                key={i}
+                                className="d-flex justify-content-between align-items-center"
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ textTransform: "capitalize" }}>
+                                    {srv.subServiceName}
+                                  </span>
+                                  {srv.speciality && (
+                                    <span className="badge bg-success ms-2">Speciality</span>
+                                  )}
+                                </div>
+                                <div>
+                                  <h6 style={{ margin: 0 }}>₹{srv.price}</h6>
+                                  {srv.duration && (
+                                    <small className="text-muted"> / {srv.duration}</small>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                  </div>
+
+
+                  {/* 🟢 Extra Details */}
+                  <div className="package-widget pack-service">
+                    <h5>Extra Details</h5>
                     <ul>
-                      {service?.additional?.map((row: any, idx: number) => (
-                        <li key={idx}>
-                          <div className="add-serving">
+                      {service?.extra_details && Object.entries(service.extra_details).map(([key, values]: [string, any], idx) => (
+                        <li key={idx} style={{ flexWrap: "wrap" }}>
+                          <div className="add-serving" style={{ width: '100%' }}>
                             <div className="add-serv-item">
                               <div className="add-serv-info">
-                                <h6>{row.additionalServiceName}</h6>
+                                {/* Capitalize key for label */}
+                                <h6 style={{ textTransform: "capitalize" }}>
+                                  {key.replace(/_/g, " ")}
+                                </h6>
                               </div>
                             </div>
                           </div>
-                          <div className="add-serv-amt">
-                            <h6>₹{row.price}</h6>
+                          <div className="add-serv-amt" style={{ width: '100%' }}>
+                            {/* Render all values as badges */}
+                            {Array.isArray(values) && values.length > 0 ? (
+                              values.map((val, i) => (
+                                <span key={i} className="badge" style={{ marginRight: "4px", marginBottom: '4px', backgroundColor: '#27c24c', color: '#fff', padding: '5px', fontSize: '13px' }}>
+                                  {val.replace(/-/g, " ")}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-muted">N/A</span>
+                            )}
                           </div>
                         </li>
                       ))}
-
-
+                      <li style={{ flexWrap: "wrap" }}>
+                        <div className="add-serving" style={{ width: '100%' }}>
+                          <div className="add-serv-item">
+                            <div className="add-serv-info">
+                              {/* Capitalize key for label */}
+                              <h6 style={{ textTransform: "capitalize" }}>
+                                Brand
+                              </h6>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="add-serv-amt" style={{ width: '100%' }}>
+                          <span className="badge" style={{ marginRight: "4px", marginBottom: '4px', backgroundColor: '#27c24c', color: '#fff', padding: '5px', fontSize: '13px' }}>
+                            {service?.brand_name}
+                          </span>
+                        </div>
+                      </li>
                     </ul>
                   </div>
+
                   <div className="card card-available">
                     <div className="card-body">
                       <div className="available-widget">
                         <div className="available-info">
                           <h5>Availability</h5>
                           <ul>
-                            <li>
-                              Sunday <span>{service?.availability?.perDay.sunday[0]?.to} -{service?.availability?.perDay.sunday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Monday <span>{service?.availability?.perDay.monday[0]?.to} -{service?.availability?.perDay.monday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Tuesday <span>{service?.availability?.perDay.tuesday[0]?.to} -{service?.availability?.perDay.tuesday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Wednesday <span>{service?.availability?.perDay.wednesday[0]?.to} -{service?.availability?.perDay.wednesday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Thursday <span>{service?.availability?.perDay.thursday[0]?.to} -{service?.availability?.perDay.thursday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Friday <span>{service?.availability?.perDay.friday[0]?.to} -{service?.availability?.perDay.friday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Saturday <span>{service?.availability?.perDay.saturday[0]?.to} -{service?.availability?.perDay.saturday[0]?.from}</span>{' '}
-                            </li>
-                            <li>
-                              Sunday <span>{service?.availability?.perDay.sunday[0]?.to} -{service?.availability?.perDay.sunday[0]?.from}</span>{' '}
-                            </li>
-                            {/* <li>
-                              Sunday <span className="text-danger">Closed</span>{' '}
-                            </li> */}
+                            {weekDays.map((day) => {
+                              const schedule = service?.availability?.perDay?.[day];
+                              if (!schedule) return null;
 
-
+                              return (
+                                <li key={day}>
+                                  <strong style={{ textTransform: "capitalize" }}>{day}</strong>{" "}
+                                  {schedule.closed ? (
+                                    <span className="text-danger">Closed</span>
+                                  ) : schedule.slots?.length > 0 ? (
+                                    <span>
+                                      {schedule.slots.map((slot: any, idx: number) => (
+                                        <span key={idx} style={{ marginRight: "8px" }}>
+                                          {slot.from} - {slot.to}
+                                          {slot.slots && ` (${slot.slots})`}
+                                        </span>
+                                      ))}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted">No slots</span>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                       </div>
                     </div>
                   </div>
+
+
 
                   <div className="card card-available">
                     <div className="card-body">
@@ -345,13 +447,13 @@ const ViewService = () => {
                         <div className="available-info">
                           <h5>Meta Seo </h5>
                           <ul>
-                            <li>Title <span>{service?.meta_title}</span></li>
-                            <li>Slug <span>{service?.slug}</span></li>
-                            <li>Description <span>{service?.meta_description}</span></li>
-                            <li>Keywords
+                            <li>Title <br/><span style={{float:'left'}}>{service?.meta_title}</span></li>
+                            <li>Slug <br/><span style={{float:'left'}}>{service?.slug}</span></li>
+                            <li>Description <br/><span style={{float:'left'}}>{service?.meta_description}</span></li>
+                            <li>Keywords<br/>
                               {service?.
                                 meta_keywords?.map((tag: any, idx: number) => (
-                                  <span key={idx} className="badge">{tag}</span>
+                                  <span key={idx} className="badge" style={{float:'left'}}>{tag}</span>
                                 ))}</li>
                           </ul>
                         </div>

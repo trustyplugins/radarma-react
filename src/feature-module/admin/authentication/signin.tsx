@@ -4,7 +4,7 @@ import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import supabase from '../../../supabaseClient';
 
 const AdminSignin = () => {
-  const [phone, setPhone] = useState('9478632129');
+  const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE');
   const [errorMsg, setErrorMsg] = useState('');
@@ -120,7 +120,7 @@ console.log(update);
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="9478632129"
+                    placeholder="9199999999"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -152,12 +152,12 @@ console.log(update);
                 )}
               </div>
 
-              <div className="signinform text-center">
+              {/* <div className="signinform text-center">
                 <h4>
                   Don&apos;t have an account?{' '}
                   <Link to="/signup" className="hover-a">Sign Up</Link>
                 </h4>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
