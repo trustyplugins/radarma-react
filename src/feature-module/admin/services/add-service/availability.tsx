@@ -24,11 +24,29 @@ type DayKey =
   | 'saturday'
   | 'sunday';
 
+type DaySchedule = {
+  closed: boolean;
+  slots: Slot[];
+};
+
 export type AvailabilityValue = {
   // when "all" is used, you'll typically ignore perDay on save — or copy "all" to all days
   all: Slot[];
-  perDay: Record<Exclude<DayKey, 'all'>, Slot[]>;
+  perDay: Record<Exclude<DayKey, 'all'>, DaySchedule>;
 };
+const defaultAvailability: AvailabilityValue = {
+  all: [],
+  perDay: {
+    monday: { closed: false, slots: [] },
+    tuesday: { closed: false, slots: [] },
+    wednesday: { closed: false, slots: [] },
+    thursday: { closed: false, slots: [] },
+    friday: { closed: false, slots: [] },
+    saturday: { closed: false, slots: [] },
+    sunday: { closed: false, slots: [] },
+  },
+};
+
 
 type Props = {
   value: AvailabilityValue;
@@ -44,12 +62,29 @@ const fromD = (d: Dayjs | null) => (d ? d.format(fmt) : '00:00:00');
 const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) => {
   // helpers to read/write specific tab list
   const getList = (key: DayKey): Slot[] =>
-    key === 'all' ? value.all : value.perDay[key];
+    key === "all" ? value.all : value.perDay[key].slots;
 
   const setList = (key: DayKey, list: Slot[]) => {
-    if (key === 'all') onChange({ all: list });
-    else onChange({ perDay: { ...value.perDay, [key]: list } });
+    if (key === "all") {
+      onChange({
+        all: list,
+        perDay: Object.fromEntries(
+          Object.keys(value.perDay).map((day) => [
+            day,
+            { ...value.perDay[day as Exclude<DayKey, "all">], slots: [...list] },
+          ])
+        ) as AvailabilityValue["perDay"],
+      });
+    } else {
+      onChange({
+        perDay: {
+          ...value.perDay,
+          [key]: { ...value.perDay[key], slots: list },
+        },
+      });
+    }
   };
+
 
   const addRow = (key: DayKey) => {
     const list = getList(key);
@@ -83,87 +118,122 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab }) =>
   // Reusable block for each tab
   const SlotsBlock: React.FC<{ label: string; dayKey: DayKey }> = ({ label, dayKey }) => {
     const rows = getList(dayKey);
+    const isClosed = dayKey !== "all" ? value.perDay[dayKey].closed : false;
+    const toggleClosed = () => {
+      if (dayKey === "all") return;
+      onChange({
+        perDay: {
+          ...value.perDay,
+          [dayKey]: { ...value.perDay[dayKey], closed: !isClosed },
+        },
+      });
+    };
+
     return (
       <>
         <div className="hours-info">
-          <h4 className="nameof-day">{label}</h4>
-          {rows?.map((row) => (
-            <div key={`${dayKey}-${row.id}`} className="row hours-cont">
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>From</label>
-                  <div className="form-availability-field">
-                    <TimePicker
-                      className="timepicker input-group-text"
-                      value={toD(row.from)}
-                      onChange={(d) => changeTime(dayKey, row.id, 'from', d)}
-                      bordered={false}
-                      format="h:mm A"
-                    />
-                    <span className="cus-icon">
-                      <i className="fe fe-clock" />
-                    </span>
+          <h4 className="nameof-day d-flex align-items-center gap-3">
+            {label}
+            {dayKey !== "all" && (
+              <label className="form-check-label d-flex align-items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  checked={isClosed}
+                  onChange={toggleClosed}
+                  style={{margin:0,fontSize:'18px'}}
+                />
+                 <span style={{fontSize:'16px'}}>Closed</span>
+              </label>
+            )}
+          </h4>
+
+          {/* Hide slots if closed */}
+          {!isClosed &&
+            rows?.map((row) => (
+              <div key={`${dayKey}-${row.id}`} className="row hours-cont">
+                {/* From */}
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label>From</label>
+                    <div className="form-availability-field">
+                      <TimePicker
+                        className="timepicker input-group-text"
+                        value={toD(row.from)}
+                        onChange={(d) => changeTime(dayKey, row.id, "from", d)}
+                        bordered={false}
+                        format="h:mm A"
+                      />
+                      <span className="cus-icon">
+                        <i className="fe fe-clock" />
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>To</label>
-                  <div className="form-availability-field">
-                    <TimePicker
-                      className="timepicker input-group-text"
-                      value={toD(row.to)}
-                      onChange={(d) => changeTime(dayKey, row.id, 'to', d)}
-                      bordered={false}
-                      format="h:mm A"
-                    />
-                    <span className="cus-icon">
-                      <i className="fe fe-clock" />
-                    </span>
+                {/* To */}
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label>To</label>
+                    <div className="form-availability-field">
+                      <TimePicker
+                        className="timepicker input-group-text"
+                        value={toD(row.to)}
+                        onChange={(d) => changeTime(dayKey, row.id, "to", d)}
+                        bordered={false}
+                        format="h:mm A"
+                      />
+                      <span className="cus-icon">
+                        <i className="fe fe-clock" />
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="col-md-3">
-                <div className="form-group">
-                  <label>Slots</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="slots"
-                    value={row.slots}
-                    onChange={(e) => changeInput(dayKey, row.id, e)}
-                    placeholder="Enter Slot"
-                  />
+                {/* Slots */}
+                <div className="col-md-3">
+                  <div className="form-group">
+                    <label>Slots</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="slots"
+                      value={row.slots}
+                      onChange={(e) => changeInput(dayKey, row.id, e)}
+                      placeholder="Enter Slot"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {row.id > 1 && (
-                <div className="col-md-1">
-                  <button
-                    onClick={() => deleteRow(dayKey, row.id)}
-                    className="btn btn-danger-outline delete-icon"
-                    type="button"
-                  >
-                    <Icon.Trash2 className="react-feather-custom trashicon" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                {/* Delete */}
+                {row.id > 1 && (
+                  <div className="col-md-1">
+                    <button
+                      onClick={() => deleteRow(dayKey, row.id)}
+                      className="btn btn-danger-outline delete-icon"
+                      type="button"
+                    >
+                      <Icon.Trash2 className="react-feather-custom trashicon" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+
+          {!isClosed && (
+            <Link
+              to="#"
+              className="link-sets add-text add-hours"
+              onClick={() => addRow(dayKey)}
+            >
+              <i className="fe fe-plus-circle" /> Add More
+            </Link>
+          )}
         </div>
-
-        <Link
-          to="#"
-          className="link-sets add-text add-hours"
-          onClick={() => addRow(dayKey)}
-        >
-          <i className="fe fe-plus-circle" /> Add More
-        </Link>
       </>
     );
   };
+
 
   return (
     <>

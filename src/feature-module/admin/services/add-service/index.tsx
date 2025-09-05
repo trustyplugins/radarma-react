@@ -40,7 +40,26 @@ type PerDay = {
   monday: Slot[]; tuesday: Slot[]; wednesday: Slot[]; thursday: Slot[];
   friday: Slot[]; saturday: Slot[]; sunday: Slot[];
 };
-type AvailabilityT = { all: Slot[]; perDay: PerDay };
+
+type DaySchedule = {
+  closed: boolean;
+  slots: Slot[];
+};
+
+type AvailabilityT = {
+  all: Slot[];
+  perDay: {
+    monday: DaySchedule;
+    tuesday: DaySchedule;
+    wednesday: DaySchedule;
+    thursday: DaySchedule;
+    friday: DaySchedule;
+    saturday: DaySchedule;
+    sunday: DaySchedule;
+  };
+};
+
+
 
 type LocationT = {
   address?: string;
@@ -67,6 +86,7 @@ type AddServiceForm = {
   seo: SeoT;
 };
 const emptySlot: Slot = { id: 1, from: '00:00:00', to: '00:00:00', slots: '' };
+const emptyDay: DaySchedule = { closed: false, slots: [{ ...emptySlot }] };
 const initialForm: AddServiceForm = {
   info: {
     title: '',
@@ -87,20 +107,20 @@ const initialForm: AddServiceForm = {
     price_range: [],
     quality: [],
     sp_niche: [],
-    cuisine:[],
+    cuisine: [],
     is_brand: false,       // ✅ default
     brand_name: null
   },
   availability: {
     all: [{ ...emptySlot }],
     perDay: {
-      monday: [{ ...emptySlot }],
-      tuesday: [{ ...emptySlot }],
-      wednesday: [{ ...emptySlot }],
-      thursday: [{ ...emptySlot }],
-      friday: [{ ...emptySlot }],
-      saturday: [{ ...emptySlot }],
-      sunday: [{ ...emptySlot }],
+      monday: { ...emptyDay },
+      tuesday: { ...emptyDay },
+      wednesday: { ...emptyDay },
+      thursday: { ...emptyDay },
+      friday: { ...emptyDay },
+      saturday: { ...emptyDay },
+      sunday: { ...emptyDay },
     },
   },
   location: {},
@@ -265,13 +285,16 @@ const AddService = () => {
       const fillAvailability = () => {
         const all = form.availability.all ?? [];
         const per = { ...form.availability.perDay };
+
         (Object.keys(per) as (keyof typeof per)[]).forEach((k) => {
-          if (!Array.isArray(per[k]) || per[k].length === 0) {
-            per[k] = all.map((s, i) => ({ ...s, id: i + 1 }));
+          if (!Array.isArray(per[k].slots) || per[k].slots.length === 0) {
+            per[k] = { ...per[k], slots: all.map((s, i) => ({ ...s, id: i + 1 })) };
           }
         });
+
         return { all, perDay: per };
       };
+
 
       const payload = {
         user_id: user.id,
@@ -294,7 +317,6 @@ const AddService = () => {
         // price: form.info.price ?? null,
         // availability
         availability: fillAvailability(),
-
         // location
         address: form.location.address || null,
         lat: form.location.lat ?? null,
@@ -319,9 +341,9 @@ const AddService = () => {
           price_range: form.info.price_range ?? [],
           quality: form.info.quality ?? [],
           sp_niche: form.info.sp_niche ?? [],
-          cuisine:form.info.cuisine?? []
+          cuisine: form.info.cuisine ?? []
         }
-        
+
       };
 
 

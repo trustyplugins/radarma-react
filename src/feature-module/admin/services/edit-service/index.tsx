@@ -41,7 +41,20 @@ type PerDay = {
   monday: Slot[]; tuesday: Slot[]; wednesday: Slot[];
   thursday: Slot[]; friday: Slot[]; saturday: Slot[]; sunday: Slot[];
 };
-type AvailabilityT = { all: Slot[]; perDay: PerDay };
+type DaySchedule = { closed: boolean; slots: Slot[] };
+
+type AvailabilityT = {
+  all: Slot[];
+  perDay: {
+    monday: DaySchedule;
+    tuesday: DaySchedule;
+    wednesday: DaySchedule;
+    thursday: DaySchedule;
+    friday: DaySchedule;
+    saturday: DaySchedule;
+    sunday: DaySchedule;
+  };
+};
 
 type LocationT = { address?: string; lat?: number; lng?: number };
 type GalleryT = { files: (File | { url: string })[] };
@@ -128,6 +141,45 @@ const EditService = () => {
       ]);
       console.log(data);
       // Map DB → Form
+      // normalize availability
+      const normalizeAvailability = (raw: any): AvailabilityT => {
+        if (!raw) {
+          return {
+            all: [],
+            perDay: {
+              monday: { closed: false, slots: [] },
+              tuesday: { closed: false, slots: [] },
+              wednesday: { closed: false, slots: [] },
+              thursday: { closed: false, slots: [] },
+              friday: { closed: false, slots: [] },
+              saturday: { closed: false, slots: [] },
+              sunday: { closed: false, slots: [] },
+            },
+          };
+        }
+
+        // if already has closed flag, return as is
+        if (raw.perDay?.monday && "closed" in raw.perDay.monday) {
+          return raw as AvailabilityT;
+        }
+
+        // fallback for older structure: wrap arrays
+        const wrap = (arr: Slot[] = []): DaySchedule => ({ closed: false, slots: arr });
+
+        return {
+          all: raw.all || [],
+          perDay: {
+            monday: wrap(raw.perDay?.monday),
+            tuesday: wrap(raw.perDay?.tuesday),
+            wednesday: wrap(raw.perDay?.wednesday),
+            thursday: wrap(raw.perDay?.thursday),
+            friday: wrap(raw.perDay?.friday),
+            saturday: wrap(raw.perDay?.saturday),
+            sunday: wrap(raw.perDay?.sunday),
+          },
+        };
+      };
+
       const mapped: ServiceForm = {
         info: {
           title: data.title,
@@ -153,7 +205,7 @@ const EditService = () => {
           brand_name: data.brand_name ?? null,
 
         },
-        availability: data.availability || { all: [], perDay: { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [] } },
+        availability: normalizeAvailability(data.availability),
         location: { address: data.address, lat: data.lat, lng: data.lng },
         gallery: { files: (data.gallery_urls || []).map((url: string) => ({ url })) },
         seo: { slug: data.slug, metaTitle: data.meta_title || "", metaDescription: data.meta_description || "", metaKeywords: data.meta_keywords || "" }
@@ -228,11 +280,11 @@ const EditService = () => {
       <div className="content">
         {/* --- Same tab UI as AddService --- */}
         {PageChange === "information" ? (
-          <ServiceInformation value={form.info} onChange={(patch) => setForm(p => ({ ...p!, info: { ...p!.info, ...patch } }))} nextTab={() => setPageChange("booking")} onUpdate={handleUpdate}  />
+          <ServiceInformation value={form.info} onChange={(patch) => setForm(p => ({ ...p!, info: { ...p!.info, ...patch } }))} nextTab={() => setPageChange("booking")} onUpdate={handleUpdate} />
         ) : PageChange === "booking" ? (
-          <Availability value={form.availability} onChange={(patch) => setForm(p => ({ ...p!, availability: { ...p!.availability, ...patch } }))} prevTab={() => setPageChange("information")} nextTab={() => setPageChange("location")}  onUpdate={handleUpdate} />
+          <Availability value={form.availability} onChange={(patch) => setForm(p => ({ ...p!, availability: { ...p!.availability, ...patch } }))} prevTab={() => setPageChange("information")} nextTab={() => setPageChange("location")} onUpdate={handleUpdate} />
         ) : PageChange === "location" ? (
-          <Location value={form.location} onChange={(patch) => setForm(p => ({ ...p!, location: { ...p!.location, ...patch } }))} prevTab={() => setPageChange("booking")} nextTab={() => setPageChange("gallery")}  onUpdate={handleUpdate} />
+          <Location value={form.location} onChange={(patch) => setForm(p => ({ ...p!, location: { ...p!.location, ...patch } }))} prevTab={() => setPageChange("booking")} nextTab={() => setPageChange("gallery")} onUpdate={handleUpdate} />
         ) : PageChange === "gallery" ? (
           //<Gallery value={form.gallery} onChange={(updater) => setForm(p => ({ ...p!, gallery: updater(p!.gallery) }))} prevTab={() => setPageChange("location")} nextTab={() => setPageChange("seo")} />
           <Gallery

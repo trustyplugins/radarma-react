@@ -9,9 +9,9 @@ dayjs.extend(customParseFormat);
 
 type Slot = {
   id: number;
-  from: string;  // 'HH:mm:ss'
-  to: string;    // 'HH:mm:ss'
-  slots: string; // or number if you prefer
+  from: string;
+  to: string;
+  slots: string;
 };
 
 type DayKey =
@@ -24,10 +24,14 @@ type DayKey =
   | 'saturday'
   | 'sunday';
 
+type DaySchedule = {
+  closed: boolean;
+  slots: Slot[];
+};
+
 export type AvailabilityValue = {
-  // when "all" is used, you'll typically ignore perDay on save — or copy "all" to all days
   all: Slot[];
-  perDay: Record<Exclude<DayKey, 'all'>, Slot[]>;
+  perDay: Record<Exclude<DayKey, 'all'>, DaySchedule>;
 };
 
 type Props = {
@@ -39,24 +43,45 @@ type Props = {
 };
 
 const fmt = 'HH:mm:ss';
-const toD = (s: string) => (s ? dayjs(s, fmt) : dayjs('00:00:00', fmt));
+const toD = (s: string) => (s ? dayjs(s, fmt) : null);
 const fromD = (d: Dayjs | null) => (d ? d.format(fmt) : '00:00:00');
 
 const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUpdate }) => {
-  // helpers to read/write specific tab list
+  // helpers
   const getList = (key: DayKey): Slot[] =>
-    key === 'all' ? value.all : value.perDay[key];
+    key === 'all' ? value.all : value.perDay[key].slots;
 
   const setList = (key: DayKey, list: Slot[]) => {
-    if (key === 'all') onChange({ all: list });
-    else onChange({ perDay: { ...value.perDay, [key]: list } });
+    if (key === "all") {
+      onChange({
+        all: list,
+        perDay: Object.fromEntries(
+          Object.keys(value.perDay).map((day) => [
+            day,
+            { ...value.perDay[day as Exclude<DayKey, "all">], slots: [...list] },
+          ])
+        ) as AvailabilityValue["perDay"],
+      });
+    } else {
+      onChange({
+        perDay: {
+          ...value.perDay,
+          [key]: { ...value.perDay[key], slots: list },
+        },
+      });
+    }
   };
 
   const addRow = (key: DayKey) => {
     const list = getList(key);
     const next: Slot[] = [
       ...list,
-      { id: (list[list.length - 1]?.id || 0) + 1, from: '00:00:00', to: '00:00:00', slots: '' },
+      {
+        id: (list[list.length - 1]?.id || 0) + 1,
+        from: '00:00:00',
+        to: '00:00:00',
+        slots: '',
+      },
     ];
     setList(key, next);
   };
@@ -67,29 +92,59 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
   };
 
   const changeTime = (key: DayKey, id: number, field: 'from' | 'to', d: Dayjs | null) => {
-    const list = getList(key).map((r) => (r.id === id ? { ...r, [field]: fromD(d) } : r));
+    const list = getList(key).map((r) =>
+      r.id === id ? { ...r, [field]: fromD(d) } : r
+    );
     setList(key, list);
   };
 
-  const changeInput = (
-    key: DayKey,
-    id: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const changeInput = (key: DayKey, id: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const list = getList(key).map((r) => (r.id === id ? { ...r, [name]: value } : r));
+    const list = getList(key).map((r) =>
+      r.id === id ? { ...r, [name]: value } : r
+    );
     setList(key, list);
   };
 
-  // Reusable block for each tab
+  const toggleClosed = (dayKey: Exclude<DayKey, 'all'>) => {
+    onChange({
+      perDay: {
+        ...value.perDay,
+        [dayKey]: {
+          ...value.perDay[dayKey],
+          closed: !value.perDay[dayKey].closed,
+        },
+      },
+    });
+  };
+
+  // reusable block
   const SlotsBlock: React.FC<{ label: string; dayKey: DayKey }> = ({ label, dayKey }) => {
     const rows = getList(dayKey);
+    const isClosed = dayKey !== 'all' ? value.perDay[dayKey].closed : false;
+
     return (
-      <>
-        <div className="hours-info">
-          <h4 className="nameof-day">{label}</h4>
-          {rows?.map((row) => (
+      <div className="hours-info">
+        <h4 className="nameof-day d-flex align-items-center gap-3">
+          {label}
+          {dayKey !== 'all' && (
+            <label className="form-check-label d-flex align-items-center gap-2">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={isClosed}
+                onChange={() => toggleClosed(dayKey as Exclude<DayKey, 'all'>)}
+                style={{margin:0,fontSize:'18px'}}
+              />
+              <span style={{fontSize:'16px'}}>Closed</span>
+            </label>
+          )}
+        </h4>
+
+        {!isClosed &&
+          rows?.map((row) => (
             <div key={`${dayKey}-${row.id}`} className="row hours-cont">
+              {/* From */}
               <div className="col-md-4">
                 <div className="form-group">
                   <label>From</label>
@@ -108,6 +163,7 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
                 </div>
               </div>
 
+              {/* To */}
               <div className="col-md-4">
                 <div className="form-group">
                   <label>To</label>
@@ -126,6 +182,7 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
                 </div>
               </div>
 
+              {/* Slots */}
               <div className="col-md-3">
                 <div className="form-group">
                   <label>Slots</label>
@@ -153,16 +210,17 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
               )}
             </div>
           ))}
-        </div>
 
-        <Link
-          to="#"
-          className="link-sets add-text add-hours"
-          onClick={() => addRow(dayKey)}
-        >
-          <i className="fe fe-plus-circle" /> Add More
-        </Link>
-      </>
+        {!isClosed && (
+          <Link
+            to="#"
+            className="link-sets add-text add-hours"
+            onClick={() => addRow(dayKey)}
+          >
+            <i className="fe fe-plus-circle" /> Add More
+          </Link>
+        )}
+      </div>
     );
   };
 
@@ -170,19 +228,20 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
     <>
       <div className="row">
         <div className="col-md-12">
-          <div className="available-section card-section ">
+          <div className="available-section card-section">
             <div className="available-heading">
-              <h4>Availablity</h4>
+              <h4>Availability</h4>
             </div>
 
             <div className="timeslot-sec availablt-time-slots">
               <label className="col-form-label">Configure Time Slots</label>
 
-              {/* Schedule Nav */}
               <div className="schedule-nav">
                 <ul className="nav">
                   <li className="nav-item">
-                    <Link className="nav-link active" data-bs-toggle="tab" to="#all_days">All Days</Link>
+                    <Link className="nav-link active" data-bs-toggle="tab" to="#all_days">
+                      All Days
+                    </Link>
                   </li>
                   <li className="nav-item"><Link className="nav-link" data-bs-toggle="tab" to="#slot_monday">Monday</Link></li>
                   <li className="nav-item"><Link className="nav-link" data-bs-toggle="tab" to="#slot_tuesday">Tuesday</Link></li>
@@ -193,7 +252,6 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
                   <li className="nav-item"><Link className="nav-link" data-bs-toggle="tab" to="#slot_sunday">Sunday</Link></li>
                 </ul>
               </div>
-              {/* /Schedule Nav */}
 
               <div className="tab-content pt-0">
                 <div className="tab-pane active" id="all_days">
@@ -222,7 +280,6 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
                 </div>
               </div>
             </div>
-            {/* Timeslot */}
           </div>
         </div>
       </div>
@@ -231,30 +288,15 @@ const Availability: React.FC<Props> = ({ value, onChange, prevTab, nextTab, onUp
         <div className="col-md-12">
           <div className="bottom-btn">
             <div className="field-btns">
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={onUpdate}
-                style={{ marginRight: '10px' }}
-              >
+              <button className="btn btn-primary" type="button" onClick={onUpdate} style={{ marginRight: '10px' }}>
                 Update
               </button>
-              <button
-                className="btn btn-prev prev_btn"
-                type="button"
-                onClick={prevTab}
-                style={{ marginRight: '10px' }}
-              >
+              <button className="btn btn-prev prev_btn" type="button" onClick={prevTab} style={{ marginRight: '10px' }}>
                 <i className="fas fa-arrow-left" /> Prev
               </button>
-              <button
-                className="btn btn-primary next_btn"
-                type="button"
-                onClick={nextTab}
-              >
+              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
                 Next <i className="fas fa-arrow-right" />
               </button>
-
             </div>
           </div>
         </div>
