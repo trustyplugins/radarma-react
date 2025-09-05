@@ -1,43 +1,52 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as Icon from 'react-feather';
+
 type GalleryItem = File | { url: string };
 type G = { files: GalleryItem[] };
 
 type Props = {
-  value: G; // { files: (File | { url: string })[] }
-  onChange: (updater: (g: G) => G) => void;
+  value: G;
+  onChange: (patch: Partial<G>) => void;
   prevTab: () => void;
   nextTab: () => void;
-  userRole: string;
+  userRole: string | null;
   onUpdate: () => void;
+  saving?: boolean;
 };
 
 const ACCEPTED = ['image/jpeg', 'image/png'];
-const MAX_FILES = 12;         // tweak as needed
-const MAX_SIZE_MB = 8;        // tweak as needed
+const MAX_FILES = 12;
+const MAX_SIZE_MB = 8;
 
-const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole, onUpdate }) => {
+const Gallery: React.FC<Props> = ({
+  value,
+  onChange,
+  prevTab,
+  nextTab,
+  userRole,
+  onUpdate,
+  saving,
+}) => {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
 
-  // keep object URLs for File previews, and revoke to avoid memory leaks
-  const filePreviews = useMemo(() => {
-    return value.files.map((f) => (f instanceof File ? URL.createObjectURL(f) : f.url));
-  }, [value.files]);
-
+  // Generate previews when files change
   useEffect(() => {
+    const urls = value.files.map((f) =>
+      f instanceof File ? URL.createObjectURL(f) : f.url
+    );
+    setFilePreviews(urls);
+
     return () => {
-      // revoke created object URLs on unmount
-      value.files.forEach((f, idx) => {
-        if (f instanceof File) {
-          URL.revokeObjectURL(filePreviews[idx]);
+      urls.forEach((url, idx) => {
+        if (value.files[idx] instanceof File) {
+          URL.revokeObjectURL(url);
         }
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [value.files]);
 
   const validateFiles = (files: File[]): File[] => {
     const accepted: File[] = [];
@@ -61,10 +70,10 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole,
     const arr = validateFiles(Array.from(files));
     if (!arr.length) return;
 
-    onChange((g) => {
-      const merged = [...g.files, ...arr].slice(0, MAX_FILES);
-      return { ...g, files: merged };
+    onChange({
+      files: [...value.files, ...arr].slice(0, MAX_FILES),
     });
+
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -82,30 +91,26 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole,
   };
 
   const deleteImage = (index: number) => {
-    // revoke URL for Files
-    const item = value.files[index];
-    if (item instanceof File) {
-      URL.revokeObjectURL(filePreviews[index]);
-    }
-    onChange((g) => {
-      const next = g.files.filter((_, i) => i !== index);
-      return { ...g, files: next };
+    onChange({
+      files: value.files.filter((_, i) => i !== index),
     });
   };
 
   const setDefault = (index: number) => {
     if (index === 0) return;
-    onChange((g) => {
-      const next = [...g.files];
-      const [chosen] = next.splice(index, 1);
-      next.unshift(chosen);
-      return { ...g, files: next };
-    });
+    const next = [...value.files];
+    const [chosen] = next.splice(index, 1);
+    next.unshift(chosen);
+    onChange({ files: next });
   };
 
   return (
     <>
-      <div className="addition-service card-section" onDragOver={(e) => { e.preventDefault(); }} onDrop={onDrop}>
+      <div
+        className="addition-service card-section"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={onDrop}
+      >
         <div className="heading-service">
           <h4>Gallery</h4>
         </div>
@@ -122,12 +127,16 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole,
                   accept={ACCEPTED.join(',')}
                   multiple
                   onChange={(e) => addFiles(e.target.files)}
-
                 />
-                <Link to="#" onClick={onBrowseClick}>Browse</Link>
+                <Link to="#" onClick={onBrowseClick}>
+                  Browse
+                </Link>
               </div>
             </div>
-            <h5>Supported formats: JPEG, PNG • Max {MAX_FILES} files • ≤ {MAX_SIZE_MB}MB each</h5>
+            <h5>
+              Supported formats: JPEG, PNG • Max {MAX_FILES} files • ≤{' '}
+              {MAX_SIZE_MB}MB each
+            </h5>
             {error && <div className="text-danger mt-2">{error}</div>}
           </div>
         </div>
@@ -139,24 +148,23 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole,
           ) : (
             <ul className="gallery-selected-img">
               {value.files.map((item, index) => {
-                //console.log(item,index);
                 const src = filePreviews[index];
                 return (
                   <li key={index}>
                     <div className="img-preview">
-                      {/* If it’s a new File, use the created URL; if existing, ImageWithBasePath handles base path */}
                       <img src={src} alt={`Service Image ${index + 1}`} />
                       <Link
                         to="#"
                         className="remove-gallery"
-                        onClick={(e) => { e.preventDefault(); deleteImage(index); }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          deleteImage(index);
+                        }}
                         title="Remove"
                       >
                         <Icon.Trash2 style={{ width: 16, height: 16 }} />
                       </Link>
                     </div>
-
-                    {/* Default selection = first item (index 0). Clicking sets chosen as first. */}
                     <label className="custom_check" title="Set as default">
                       <input
                         type="radio"
@@ -176,33 +184,33 @@ const Gallery: React.FC<Props> = ({ value, onChange, prevTab, nextTab, userRole,
 
       <div className="bottom-btn">
         <div className="field-btns">
-
           <button
             className="btn btn-primary"
             type="button"
             onClick={onUpdate}
             style={{ marginRight: '10px' }}
+            disabled={saving}
           >
-            Update
+            {saving ? 'Updating...' : 'Update'}
           </button>
 
-          <button className="btn btn-prev prev_btn" type="button" onClick={prevTab}>
+          <button
+            className="btn btn-prev prev_btn"
+            type="button"
+            onClick={prevTab}
+          >
             <i className="fas fa-arrow-left" /> Prev
           </button>
-          {userRole === "A1" && (
-            <>
-              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
-                Next <i className="fas fa-arrow-right" />
-              </button>
-            </>
+
+          {userRole === 'A1' && (
+            <button
+              className="btn btn-primary next_btn"
+              type="button"
+              onClick={nextTab}
+            >
+              Next <i className="fas fa-arrow-right" />
+            </button>
           )}
-          {/* {userRole === "A2" && (
-            <>
-              <button className="btn btn-primary next_btn" type="button" onClick={nextTab}>
-                Next <i className="fas fa-arrow-right" />
-              </button>
-            </>
-          )} */}
         </div>
       </div>
     </>

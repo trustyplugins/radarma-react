@@ -87,7 +87,7 @@ const EditService = () => {
           .select('*')
           .eq('mobile', dbMobile)
           .single();
-        //console.log(data);
+        
         setUserRole(error ? null : data?.role || null);
       } else {
         //setProfile(null);
@@ -225,6 +225,30 @@ const EditService = () => {
     setErrorMsg(null);
     try {
       if (!form.info.title?.trim()) throw new Error('Title is required.');
+      const uploadedUrls: string[] = [];
+    for (const f of form.gallery.files) {
+      if ("url" in f) {
+        // already stored
+        uploadedUrls.push(f.url);
+      } else if (f instanceof File) {
+        // upload new file
+        const filePath = `services/${crypto.randomUUID()}-${f.name}`;
+        const { error: uploadErr } = await supabase.storage
+          .from("Service Gallery") // 👈 bucket name (make sure it matches yours)
+          .upload(filePath, f, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (uploadErr) throw uploadErr;
+
+        // get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from("Service Gallery")
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(publicUrlData.publicUrl);
+      }
+    }
       const payload = {
         title: form.info.title,
         description: form.info.description,
@@ -242,7 +266,7 @@ const EditService = () => {
         address: form.location.address,
         lat: form.location.lat,
         lng: form.location.lng,
-        gallery_urls: form.gallery.files.map(f => ("url" in f ? f.url : "")),
+        gallery_urls: uploadedUrls,
         slug: form.seo.slug,
         meta_title: form.seo.metaTitle,
         meta_description: form.seo.metaDescription,
@@ -279,7 +303,7 @@ const EditService = () => {
   };
 
   if (loading || !form) return <p>Loading...</p>;
-  //console.log(form);
+
   return (
     <div className="page-wrapper">
       <div className="content">
