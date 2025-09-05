@@ -66,11 +66,21 @@ const AdminSidebar = ({ userRole }: { userRole: string | null }) => {
       <div className="admin-sidebar-header">
         <div className="admin-sidebar-logo">
           <Link to="/dashboard">
-            <ImageWithBasePath
-              src="assets/admin/img/logo.svg"
+            {/* <ImageWithBasePath
+              src="assets/admin/img/white-tagline.png"
               className="img-fluid logo"
               alt="Logo"
+            /> */}
+             <ImageWithBasePath
+              src="assets/admin/img/white-without-tagline.png"
+              className="img-fluid logo admin_logo"
+              alt="Logo"
             />
+             {/* <ImageWithBasePath
+              src="assets/admin/img/dark-without-tagline.png"
+              className="img-fluid logo"
+              alt="Logo"
+            /> */}
           </Link>
           <Link to={routes.dashboard}>
             <ImageWithBasePath
