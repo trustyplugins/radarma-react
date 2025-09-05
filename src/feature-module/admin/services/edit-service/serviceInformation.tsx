@@ -38,6 +38,7 @@ export type ServiceInformationValue = {
   price_range?: string | null;
   quality?: string | null;
   sp_niche?: string | null;
+  cuisine?: string[];
   since?: string | null;
   is_brand: boolean;
   brand_name: string | null;

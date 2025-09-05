@@ -29,6 +29,7 @@ type Info = {
   price_range?: string[];
   quality?: string[];
   sp_niche?: string[];
+  cuisine?: string[];
   is_brand: boolean;       // ✅ add this
   brand_name: string | null; // ✅ add this
 };
@@ -86,6 +87,7 @@ const initialForm: AddServiceForm = {
     price_range: [],
     quality: [],
     sp_niche: [],
+    cuisine:[],
     is_brand: false,       // ✅ default
     brand_name: null
   },
@@ -317,6 +319,7 @@ const AddService = () => {
           price_range: form.info.price_range ?? [],
           quality: form.info.quality ?? [],
           sp_niche: form.info.sp_niche ?? [],
+          cuisine:form.info.cuisine?? []
         }
         
       };

@@ -31,6 +31,7 @@ type Info = {
   price_range?: string[];
   quality?: string[];
   sp_niche?: string[];
+  cuisine?: string[];
   is_brand: boolean;       // ✅ add this
   brand_name: string | null; // ✅ add this
 };
@@ -147,6 +148,7 @@ const EditService = () => {
           price_range: data.extra_details?.price_range ?? [],
           quality: data.extra_details?.quality ?? [],
           sp_niche: data.extra_details?.sp_niche ?? [],
+          cuisine: data.extra_details?.cuisine ?? [],
           is_brand: data.is_brand ?? false,
           brand_name: data.brand_name ?? null,
 
@@ -197,6 +199,7 @@ const EditService = () => {
         price_range: form.info.price_range ?? [],
         quality: form.info.quality ?? [],
         sp_niche: form.info.sp_niche ?? [],
+        cuisine: form.info.cuisine ?? [],
       },
       is_brand: form.info.is_brand,
       brand_name: form.info.brand_name,
