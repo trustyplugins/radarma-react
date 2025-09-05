@@ -75,6 +75,7 @@ const EditService = () => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -221,55 +222,59 @@ const EditService = () => {
   const handleUpdate = async () => {
     if (!form) return;
     setSaving(true);
+    setErrorMsg(null);
+    try {
+      if (!form.info.title?.trim()) throw new Error('Title is required.');
+      const payload = {
+        title: form.info.title,
+        description: form.info.description,
+        city_id: form.info.masterCategory.map(c => c.id),
+        sector_ids: form.info.category.map(c => c.id),
+        main_category_ids: form.info.mainCategory.map(c => c.id),
+        sub_category_ids: form.info.subCategory.map(c => c.id),
+        tag_ids: form.info.tags.map(c => c.id),
+        sub_tag_ids: form.info.subTags.map(c => c.id),
+        additional_enabled: form.info.additionalEnabled,
+        additional: form.info.additional,
+        video_url: form.info.videoUrl,
+        since: form.info.since,
+        availability: form.availability,
+        address: form.location.address,
+        lat: form.location.lat,
+        lng: form.location.lng,
+        gallery_urls: form.gallery.files.map(f => ("url" in f ? f.url : "")),
+        slug: form.seo.slug,
+        meta_title: form.seo.metaTitle,
+        meta_description: form.seo.metaDescription,
+        meta_keywords: form.seo.metaKeywords,
+        extra_details: {
+          accessibility: form.info.accessibility ?? [],
+          payment_options: form.info.payment_options ?? [],
+          service_mode: form.info.service_mode ?? [],
+          price_range: form.info.price_range ?? [],
+          quality: form.info.quality ?? [],
+          sp_niche: form.info.sp_niche ?? [],
+          cuisine: form.info.cuisine ?? [],
+        },
+        is_brand: form.info.is_brand,
+        brand_name: form.info.brand_name,
 
-    const payload = {
-      title: form.info.title,
-      description: form.info.description,
-      city_id: form.info.masterCategory.map(c => c.id),
-      sector_ids: form.info.category.map(c => c.id),
-      main_category_ids: form.info.mainCategory.map(c => c.id),
-      sub_category_ids: form.info.subCategory.map(c => c.id),
-      tag_ids: form.info.tags.map(c => c.id),
-      sub_tag_ids: form.info.subTags.map(c => c.id),
-      additional_enabled: form.info.additionalEnabled,
-      additional: form.info.additional,
-      video_url: form.info.videoUrl,
-      since: form.info.since,
-      availability: form.availability,
-      address: form.location.address,
-      lat: form.location.lat,
-      lng: form.location.lng,
-      gallery_urls: form.gallery.files.map(f => ("url" in f ? f.url : "")),
-      slug: form.seo.slug,
-      meta_title: form.seo.metaTitle,
-      meta_description: form.seo.metaDescription,
-      meta_keywords: form.seo.metaKeywords,
-      extra_details: {
-        accessibility: form.info.accessibility ?? [],
-        payment_options: form.info.payment_options ?? [],
-        service_mode: form.info.service_mode ?? [],
-        price_range: form.info.price_range ?? [],
-        quality: form.info.quality ?? [],
-        sp_niche: form.info.sp_niche ?? [],
-        cuisine: form.info.cuisine ?? [],
-      },
-      is_brand: form.info.is_brand,
-      brand_name: form.info.brand_name,
+      };
 
-    };
+      const { error } = await supabase
+        .from("listings")
+        .update(payload)
+        .eq("id", id);
 
-    const { error } = await supabase
-      .from("listings")
-      .update(payload)
-      .eq("id", id);
+      if (error) throw error;
 
-    setSaving(false);
-    if (error) {
-      console.error(error);
-      alert("Failed to update Listing.");
-    } else {
       alert("Listing updated successfully!");
       navigate("/services/all-services");
+    } catch (e: any) {
+      console.error(e);
+      setErrorMsg(e.message ?? "Failed to update Listing.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -278,6 +283,88 @@ const EditService = () => {
   return (
     <div className="page-wrapper">
       <div className="content">
+        <div className="row">
+          <div className="col-lg-12 m-auto">
+            <div className="progressbar-card">
+              <ul id="progress-head">
+                <li className="active">
+                  Update Listing - Listing Information
+                </li>
+                <li>Add Listing - Availablity</li>
+                <li>Add Listing - Location</li>
+                <li>Add Listing - Gallery</li>
+                <li>Add Listing - SEO</li>
+              </ul>
+              <ul id="progressbar">
+                <li
+                  className={PageChange === "information" ? "active" : ""}
+                  onClick={() => setPageChange("information")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="multi-step-icon">
+                    <span><i className="far fa-check-circle" /></span>
+                  </div>
+                  <div className="multi-step-info"><h6>Information</h6></div>
+                </li>
+
+                <li
+                  className={PageChange === "booking" ? "active" : ""}
+                  onClick={() => setPageChange("booking")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="multi-step-icon">
+                    <span><i className="far fa-clock" /></span>
+                  </div>
+                  <div className="multi-step-info"><h6>Availability</h6></div>
+                </li>
+
+                <li
+                  className={PageChange === "location" ? "active" : ""}
+                  onClick={() => setPageChange("location")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="multi-step-icon">
+                    <span><i className="far fa-map" /></span>
+                  </div>
+                  <div className="multi-step-info"><h6>Location</h6></div>
+                </li>
+
+                <li
+                  className={PageChange === "gallery" ? "active" : ""}
+                  onClick={() => setPageChange("gallery")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="multi-step-icon">
+                    <span><i className="far fa-images" /></span>
+                  </div>
+                  <div className="multi-step-info"><h6>Gallery</h6></div>
+                </li>
+
+                {userRole === "A1" && (
+                  <li
+                    className={PageChange === "seo" ? "active" : ""}
+                    onClick={() => setPageChange("seo")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div className="multi-step-icon">
+                      <span><i className="far fa-chart-bar" /></span>
+                    </div>
+                    <div className="multi-step-info"><h6>SEO</h6></div>
+                  </li>
+                )}
+              </ul>
+
+            </div>
+          </div>
+        </div>
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="row">
+            <div className="col-lg-12 m-auto">
+              <div className="alert alert-danger">{errorMsg}</div>
+            </div>
+          </div>
+        )}
         {/* --- Same tab UI as AddService --- */}
         {PageChange === "information" ? (
           <ServiceInformation value={form.info} onChange={(patch) => setForm(p => ({ ...p!, info: { ...p!.info, ...patch } }))} nextTab={() => setPageChange("booking")} onUpdate={handleUpdate} />

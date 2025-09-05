@@ -382,59 +382,64 @@ const AddService = () => {
                   <li>Add Listing - SEO</li>
                 </ul>
                 <ul id="progressbar">
-                  <li className={TabChange ? 'active' : ''}>
+                  <li
+                    className={PageChange === "information" ? "active" : ""}
+                    onClick={() => serviceTab()}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="multi-step-icon">
-                      <span>
-                        <i className="far fa-check-circle" />
-                      </span>
+                      <span><i className="far fa-check-circle" /></span>
                     </div>
-                    <div className="multi-step-info">
-                      <h6>Information</h6>
-                    </div>
+                    <div className="multi-step-info"><h6>Information</h6></div>
                   </li>
-                  <li className={TabChange1 ? 'active' : ''}>
+
+                  <li
+                    className={PageChange === "booking" ? "active" : ""}
+                    onClick={() => availabilityTab()}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="multi-step-icon">
-                      <span>
-                        <i className="far fa-clock" />
-                      </span>
+                      <span><i className="far fa-clock" /></span>
                     </div>
-                    <div className="multi-step-info">
-                      <h6>Availability</h6>
-                    </div>
+                    <div className="multi-step-info"><h6>Availability</h6></div>
                   </li>
-                  <li className={TabChange2 ? 'active' : ''}>
+
+                  <li
+                    className={PageChange === "location" ? "active" : ""}
+                    onClick={() => locationTab()}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="multi-step-icon">
-                      <span>
-                        <i className="far fa-map" />
-                      </span>
+                      <span><i className="far fa-map" /></span>
                     </div>
-                    <div className="multi-step-info">
-                      <h6>Location</h6>
-                    </div>
+                    <div className="multi-step-info"><h6>Location</h6></div>
                   </li>
-                  <li className={TabChange3 ? 'active' : ''}>
+
+                  <li
+                    className={PageChange === "gallery" ? "active" : ""}
+                    onClick={() => galleryTab()}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="multi-step-icon">
-                      <span>
-                        <i className="far fa-images" />
-                      </span>
+                      <span><i className="far fa-images" /></span>
                     </div>
-                    <div className="multi-step-info">
-                      <h6>Gallery</h6>
-                    </div>
+                    <div className="multi-step-info"><h6>Gallery</h6></div>
                   </li>
+
                   {userRole === "A1" && (
-                    <li className={TabChange4 ? 'active' : ''}>
+                    <li
+                      className={PageChange === "seo" ? "active" : ""}
+                      onClick={() => seoTab()}
+                      style={{ cursor: "pointer" }}
+                    >
                       <div className="multi-step-icon">
-                        <span>
-                          <i className="far fa-chart-bar" />
-                        </span>
+                        <span><i className="far fa-chart-bar" /></span>
                       </div>
-                      <div className="multi-step-info">
-                        <h6>SEO</h6>
-                      </div>
+                      <div className="multi-step-info"><h6>SEO</h6></div>
                     </li>
                   )}
                 </ul>
+
               </div>
             </div>
           </div>
