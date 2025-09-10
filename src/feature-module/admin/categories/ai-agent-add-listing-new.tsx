@@ -17,7 +17,7 @@ const AiAgentAddListing: React.FC = () => {
         { title: string; status: string; error?: any }[]
     >([]);
     const [progress, setProgress] = useState({ current: 0, total: 0 });
-
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
     const [value, setValue] = useState<{
         query: string;
@@ -104,27 +104,26 @@ const AiAgentAddListing: React.FC = () => {
         }
 
         setLoading(true);
-        try {
-            // Build extra_details from dropdownConfig keys
-            const extra_details: Record<string, string[]> = {};
-            dropdownConfig.forEach((dd) => {
-                if (value[dd.key]?.length) {
-                    extra_details[dd.key] = value[dd.key]; // already array of strings
-                }
-            });
+        setRequestStatuses([]);
+        setProgress({ current: 0, total: 0 });
 
+        try {
             const payload = {
                 query: value.query,
                 mainCategory: value.mainCategory.map((m) => m.id),
                 subCategory: value.subCategory.map((s) => s.id),
                 is_brand: value.is_brand,
                 brand_name: value.brand_name,
-                extra_details,
+                extra_details: Object.fromEntries(
+                    dropdownConfig
+                        .filter((dd) => value[dd.key]?.length)
+                        .map((dd) => [dd.key, value[dd.key]])
+                ),
             };
 
+            // Hit webhook → respond immediately with session_id + total
             const res = await fetch(
-                //"https://ai.trustyplugins.com/webhook-test/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
-                "https://ai.trustyplugins.com/webhook/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
+                "https://ai.trustyplugins.com/webhook-test/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -132,63 +131,51 @@ const AiAgentAddListing: React.FC = () => {
                 }
             );
 
-            const result = await res.json();
-            console.log("Webhook raw response:", result);
+            const { session_id, total } = await res.json();
+            console.log("Session started:", session_id, "total:", total);
 
-            if (res.ok) {
-                let resultsArray: any[] = [];
-
-                if (Array.isArray(result)) {
-                    const first = result[0];
-                    if (first?.results && Array.isArray(first.results)) {
-                        resultsArray = first.results.flat();
-                    }
-                } else if (result.results) {
-                    resultsArray = result.results.flat();
-                }
-
-                // Normalize results for UI
-                const normalized = resultsArray.map((r: any) => {
-                    if (r.error) {
-                        // Try to parse Supabase JSON error if present
-                        let cleanMessage = r.error;
-                        try {
-                            if (typeof r.error === "string") {
-                                const parsed = JSON.parse(r.error.match(/{.*}/)?.[0] || "{}");
-                                cleanMessage = parsed.message || parsed.details || r.error;
-                            } else if (r.error.message) {
-                                cleanMessage = r.error.message;
-                            }
-                        } catch {
-                            // fallback keep original
-                        }
-
-                        return {
-                            title: r.title || r.slug || "Unknown",
-                            status: "error",
-                            error: cleanMessage,
-                        };
-                    }
-                    return {
-                        title: r.title || r.slug || "Untitled",
-                        status: "success",
-                    };
-                });
-
-                setRequestStatuses(normalized);
-            }
-
-            else {
-                console.error("❌ Failed:", res.status, res.statusText, result);
-                alert("Something went wrong! See console for details.");
-            }
+            setSessionId(session_id);
+            setProgress({ current: 0, total: total || 0 });
         } catch (err) {
-            console.error("Error submitting:", err);
-            alert("Error connecting to AI Agent!");
-        } finally {
+            console.error("Error starting import:", err);
+            alert("Could not start import.");
             setLoading(false);
         }
     };
+    useEffect(() => {
+        if (!sessionId) return;
+
+        const channel = supabase
+            .channel("import_status")
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "import_status",
+                    filter: `session_id=eq.${sessionId}`,
+                },
+                (payload) => {
+                    const row = payload.new as {
+                        title: string;
+                        status: string;
+                        error?: string;
+                    };
+
+                    setRequestStatuses((prev) => [...prev, row]);
+                    setProgress((prev) => ({
+                        ...prev,
+                        current: prev.current + 1,
+                    }));
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [sessionId]);
+
 
 
 
@@ -350,9 +337,20 @@ const AiAgentAddListing: React.FC = () => {
                     </div>
                 </fieldset>
                 {loading && (
-                    <div className="mt-3 text-center">
-                        <span className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                        Processing... please wait
+                    <div className="mt-3">
+                        <p>
+                            ⏳ Processing {progress.current} / {progress.total} items...
+                        </p>
+                        <div className="progress">
+                            <div
+                                className="progress-bar"
+                                style={{
+                                    width: `${progress.total > 0
+                                        ? (progress.current / progress.total) * 100
+                                        : 0}%`,
+                                }}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -360,22 +358,24 @@ const AiAgentAddListing: React.FC = () => {
                     <div className="mt-4">
                         <h6>Request Results</h6>
                         <ul>
-                            <ul>
-                                {requestStatuses.map((r, i) => (
-                                    <li key={i}>
-                                        <strong>{i + 1}. {r.title}</strong> —{" "}
-                                        {r.status === "success" ? (
-                                            <span style={{ color: "green" }}>✅ Saved</span>
-                                        ) : (
-                                            <span style={{ color: "red" }}>❌ Failed {r.error && `(${r.error})`}</span>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-
+                            {requestStatuses.map((r, i) => (
+                                <li key={i}>
+                                    <strong>{i + 1}. {r.title || "Unknown"}</strong> —{" "}
+                                    {r.status === "success" ? (
+                                        <span style={{ color: "green" }}>✅ Saved</span>
+                                    ) : r.status === "processing" ? (
+                                        <span style={{ color: "orange" }}>⏳ Processing</span>
+                                    ) : (
+                                        <span style={{ color: "red" }}>
+                                            ❌ Failed {r.error && `(${r.error})`}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 )}
+
 
 
             </div>
