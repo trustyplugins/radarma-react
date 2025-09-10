@@ -261,6 +261,7 @@ export const all_routes = {
   sortingTags:'/sorting-tags/tags-list',
   subTags:'/sorting-tags/sub-tags',
   jsonData:'/data/json-data',
+  ai_add_listing:'ai-agent/add-listing',
   addPages:'/pages/add-page',
   EditPages:'/edit-page',
   viewService:'/view-listing',

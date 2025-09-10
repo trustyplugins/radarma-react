@@ -43,6 +43,7 @@ import SubTags from './categories/sub-tags';
 import EditService from './services/edit-service';
 import ViewService from './view-service/view-service';
 import JsonDataTags from './categories/json-data';
+import AiAgentAddListing from './categories/ai-agent-add-listing';
 const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
   const all_admin_routes = [
     {
@@ -179,6 +180,13 @@ const AdminRoutes = ({ userRole }: { userRole: string | null }) => {
       path: '/data/json-data',
       name: 'json',
       element: <JsonDataTags />,
+      route: Route,
+      role:['A1']
+    },
+    {
+      path: '/ai-agent/add-listing',
+      name: 'ai_add_listing',
+      element: <AiAgentAddListing />,
       route: Route,
       role:['A1']
     },
