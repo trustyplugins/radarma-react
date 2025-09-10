@@ -16,7 +16,9 @@ const AiAgentAddListing: React.FC = () => {
     const [requestStatuses, setRequestStatuses] = useState<
         { title: string; status: string; error?: any }[]
     >([]);
-    const [progress, setProgress] = useState({ current: 0, total: 0 });
+
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [progressRow, setProgressRow] = useState<any | null>(null);
 
 
     const [value, setValue] = useState<{
@@ -112,8 +114,10 @@ const AiAgentAddListing: React.FC = () => {
                     extra_details[dd.key] = value[dd.key]; // already array of strings
                 }
             });
-
+            const jobId = crypto.randomUUID();
+            setJobId(jobId);
             const payload = {
+                job_id: jobId,
                 query: value.query,
                 mainCategory: value.mainCategory.map((m) => m.id),
                 subCategory: value.subCategory.map((s) => s.id),
@@ -184,11 +188,35 @@ const AiAgentAddListing: React.FC = () => {
             }
         } catch (err) {
             console.error("Error submitting:", err);
-            alert("Error connecting to AI Agent!");
+           // alert("Error connecting to AI Agent!");
         } finally {
             setLoading(false);
         }
     };
+    useEffect(() => {
+        if (!jobId) return;
+
+        const channel = supabase
+            .channel("progress-channel")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "listing_import_progress",
+                    filter: `job_id=eq.${jobId}`,
+                },
+                (payload) => {
+                    console.log("Progress update:", payload.new);
+                    setProgressRow(payload.new);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [jobId]);
 
 
 
@@ -353,6 +381,40 @@ const AiAgentAddListing: React.FC = () => {
                     <div className="mt-3 text-center">
                         <span className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                         Processing... please wait
+                    </div>
+                )}
+                {progressRow && (
+                    <div className="mt-4">
+                        <h6>Import Progress</h6>
+                        <p>
+                            {progressRow.current}/{progressRow.total} processed
+                            {" "}
+                            ({Math.round((progressRow.current / progressRow.total) * 100)}%)
+                        </p>
+
+                        <div className="progress mb-2">
+                            <div
+                                className="progress-bar"
+                                style={{ width: `${(progressRow.current / progressRow.total) * 100}%` }}
+                            />
+                        </div>
+
+                        <p>Status: {progressRow.status}</p>
+
+                        {progressRow.results?.length > 0 && (
+                            <ul>
+                                {progressRow.results.map((r: any, i: number) => (
+                                    <li key={i}>
+                                        <strong>{r.title}</strong> —{" "}
+                                        {r.status === "success" ? (
+                                            <span style={{ color: "green" }}>✅</span>
+                                        ) : (
+                                            <span style={{ color: "red" }}>❌ {r.error}</span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 )}
 
