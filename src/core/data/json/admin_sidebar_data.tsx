@@ -80,20 +80,20 @@ export const adminSidebar = [
           }
         ],
       },
-      {
-        menuValue: 'AI Agent',
-        hasSubRoute: true,
-        showSubRoute: false,
-        route: routes.city,
-        icon: <Icon.FileText className="react-feather-icon" />,
-        subMenus: [
-          {
-            menuValue: 'Add Listing',
-            route: routes.ai_add_listing,
-          },
+      // {
+      //   menuValue: 'AI Agent',
+      //   hasSubRoute: true,
+      //   showSubRoute: false,
+      //   route: routes.city,
+      //   icon: <Icon.FileText className="react-feather-icon" />,
+      //   subMenus: [
+      //     {
+      //       menuValue: 'Add Listing',
+      //       route: routes.ai_add_listing,
+      //     },
          
-        ],
-      },
+      //   ],
+      // },
     ],
   },
   {

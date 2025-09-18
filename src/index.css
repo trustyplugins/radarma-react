@@ -1639,3 +1639,7 @@ margin-right: 20px;
 .logo.admin_logo {
   width: 150px;
 }
+
+.filters-group-listing span.p-dropdown-label.p-inputtext.p-placeholder {
+  font-size: 12px;
+}

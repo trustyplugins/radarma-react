@@ -16,6 +16,15 @@ const AiAgentAddListing: React.FC = () => {
     const [requestStatuses, setRequestStatuses] = useState<
         { title: string; status: string; error?: any }[]
     >([]);
+    const [batchProgress, setBatchProgress] = useState<{
+        current: number;
+        total: number;
+        logs: { name: string; status: string; error?: string }[];
+    }>({
+        current: 0,
+        total: 0,
+        logs: [],
+    });
 
     const [jobId, setJobId] = useState<string | null>(null);
     const [progressRow, setProgressRow] = useState<any | null>(null);
@@ -127,8 +136,8 @@ const AiAgentAddListing: React.FC = () => {
             };
 
             const res = await fetch(
-               // "https://ai.trustyplugins.com/webhook-test/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
-                "https://ai.trustyplugins.com/webhook/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
+                "https://ai.trustyplugins.com/webhook-test/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
+                // "https://ai.trustyplugins.com/webhook/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -188,7 +197,7 @@ const AiAgentAddListing: React.FC = () => {
             }
         } catch (err) {
             console.error("Error submitting:", err);
-           // alert("Error connecting to AI Agent!");
+            // alert("Error connecting to AI Agent!");
         } finally {
             setLoading(false);
         }
@@ -218,6 +227,76 @@ const AiAgentAddListing: React.FC = () => {
         };
     }, [jobId]);
 
+    const runBatchForSubcategories = async () => {
+        try {
+            const { data: subcats, error } = await supabase
+                .from("sub_categories")
+                .select("id, category");
+
+            if (error) {
+                console.error("Error fetching subcategories:", error);
+                return;
+            }
+
+            setBatchProgress({ current: 0, total: subcats.length, logs: [] });
+
+            for (let i = 0; i < subcats.length; i++) {
+                const sub = subcats[i];
+                const jobId = crypto.randomUUID();
+
+                const payload = {
+                    job_id: jobId,
+                    query: sub.category+' in mohali',
+                    mainCategory: [],
+                    subCategory: [sub.id],
+                    is_brand: false,
+                    brand_name: null,
+                    extra_details: {},
+                };
+
+               const logEntry: { name: string; status: string; error?: string } = {
+                    name: sub.category+' in mohali',
+                    status: "pending",
+                };
+
+                try {
+                    const res = await fetch(
+                        "https://ai.trustyplugins.com/webhook-test/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
+                        //"https://ai.trustyplugins.com/webhook/8c6fad2c-9196-4c9f-badf-420c68ba5a7a",
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload),
+                        }
+                    );
+
+                    if (res.ok) {
+                        logEntry.status = "success";
+                    } else {
+                        logEntry.status = "error";
+                        logEntry.error = `HTTP ${res.status}`;
+                    }
+                } catch (err: any) {
+                    logEntry.status = "error";
+                    logEntry.error = err.message || "Request failed";
+                }
+
+                // update progress UI
+                setBatchProgress((prev) => ({
+                    current: i + 1,
+                    total: subcats.length,
+                    logs: [...prev.logs, logEntry],
+                }));
+
+                // wait before next
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+
+            console.log("✅ All subcategories processed");
+        } catch (err) {
+            console.error("Batch run failed:", err);
+        }
+    };
 
 
     return (
@@ -377,12 +456,57 @@ const AiAgentAddListing: React.FC = () => {
                         </div>
                     </div>
                 </fieldset>
+                <div className="mt-4">
+                    <button
+                        className="btn btn-secondary"
+                        type="button"
+                        onClick={runBatchForSubcategories}
+                        disabled={batchProgress.current > 0 && batchProgress.current < batchProgress.total}
+                    >
+                        Run Batch for All Subcategories
+                    </button>
+
+                    {batchProgress.total > 0 && (
+                        <div className="mt-3">
+                            <p>
+                                Processed {batchProgress.current}/{batchProgress.total}
+                            </p>
+                            <div className="progress mb-2">
+                                <div
+                                    className="progress-bar"
+                                    style={{
+                                        width: `${(batchProgress.current / batchProgress.total) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                            <ul>
+                                {batchProgress.logs.map((log, i) => (
+                                    <li key={i}>
+                                        <strong>{log.name}</strong> —{" "}
+                                        {log.status === "success" ? (
+                                            <span style={{ color: "green" }}>✅ Success</span>
+                                        ) : log.status === "error" ? (
+                                            <span style={{ color: "red" }}>
+                                                ❌ Failed {log.error && `(${log.error})`}
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: "blue" }}>⏳ Pending</span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+
+
                 {loading && (
                     <div className="mt-3 text-center">
                         <span className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                         Processing... please wait
                     </div>
                 )}
+
                 {progressRow && (
                     <div className="mt-4">
                         <h6>Import Progress</h6>

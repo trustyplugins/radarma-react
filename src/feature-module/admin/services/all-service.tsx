@@ -69,6 +69,23 @@ const AllService: React.FC = () => {
   const [subCatMap, setSubCatMap] = useState<Record<number, string>>({});
   const [tagMap, setTagMap] = useState<Record<number, string>>({});
   const [subTagMap, setSubTagMap] = useState<Record<number, string>>({});
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [pageState, setPageState] = useState({ first: 0, rows: 100 });
+  const [filterCity, setFilterCity] = useState<number | null>(null);
+  const [filterSector, setFilterSector] = useState<number | null>(null);
+  const [filterMainCat, setFilterMainCat] = useState<number | null>(null);
+  const [filterSubCat, setFilterSubCat] = useState<number | null>(null);
+  const [searchTitle, setSearchTitle] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTitle);
+      setPageState((p) => ({ ...p, first: 0 })); // reset page when searching
+    }, 1300); // 500ms delay
+
+    return () => clearTimeout(handler); // cleanup old timers
+  }, [searchTitle]);
 
   // auth + role
   useEffect(() => {
@@ -134,13 +151,25 @@ const AllService: React.FC = () => {
 
   // listings fetch + hydrate
   const fetchListings = async () => {
-    if (role === null) return; // still resolving role
+    if (role === null) return;
     setLoading(true);
     setErr(null);
     try {
+      const from = pageState.first;
+      const to = pageState.first + pageState.rows - 1;
+
       let q = supabase
         .from('listings')
-        .select('id,title,city_id,sector_ids,main_category_ids,sub_category_ids,tag_ids,sub_tag_ids,price,status,slug,user_id,created_at,gallery_urls');
+        .select('id,title,city_id,sector_ids,main_category_ids,sub_category_ids,tag_ids,sub_tag_ids,price,status,slug,user_id,created_at,gallery_urls', { count: 'exact' })
+        .range(from, to);
+      if (filterCity) q = q.contains('city_id', [filterCity]);
+      if (filterSector) q = q.contains('sector_ids', [filterSector]);
+      if (filterMainCat) q = q.contains('main_category_ids', [filterMainCat]);
+      if (filterSubCat) q = q.contains('sub_category_ids', [filterSubCat]);
+      if (debouncedSearch.trim() !== "") {
+        q = q.ilike("title", `%${debouncedSearch.trim()}%`);
+      }
+      
 
       if (role === 'A2' && userId) q = q.eq('user_id', userId);
 
@@ -149,13 +178,15 @@ const AllService: React.FC = () => {
       if (selectedSort.key === 'new') q = q.order('created_at', { ascending: false, nullsLast: true });
       if (selectedSort.key === 'old') q = q.order('created_at', { ascending: true, nullsFirst: true });
 
-      const { data, error } = await q;
+      const { data, error, count } = await q;
       if (error) throw error;
+
+      setTotalRecords(count ?? 0);
 
       const hydrated: ListingRow[] = (data as ListingRaw[]).map(r => ({
         id: r.id,
         title: r.title,
-        city: r.city_id ? (cityMap[r.city_id] ?? '—') : '—',
+        city: r.city_id ? (cityMap[r.city_id] ?? '') : '—',
         sector: joinNames(r.sector_ids, sectorMap),
         main_category: joinNames(r.main_category_ids, mainCatMap),
         sub_category: joinNames(r.sub_category_ids, subCatMap),
@@ -176,16 +207,40 @@ const AllService: React.FC = () => {
     }
   };
 
+
   useEffect(() => {
     if (role !== null) fetchListings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, userId, selectedSort.key, cityMap, sectorMap, mainCatMap, subCatMap, tagMap, subTagMap]);
+  }, [
+    role,
+    userId,
+    selectedSort.key,
+    pageState,
+    cityMap,
+    sectorMap,
+    mainCatMap,
+    subCatMap,
+    tagMap,
+    subTagMap,
+    filterCity,
+    filterSector,
+    filterMainCat,
+    filterSubCat,
+    searchTitle
+  ]);
+
+
 
   // render helpers
   const renderService = (res: ListingRow) => {
     const cover = res.gallery_urls?.[0];
     return (
-      <Link to={`/listings/view-listing/${res.id}`} className="table-imgname">
+      <Link
+        to={`/listings/view-listing/${res.id}`}
+        className="table-imgname"
+        style={{ display: "flex", alignItems: "center", maxWidth: "250px" }} // limit width
+        title={res.title} // tooltip with full title
+      >
         {cover ? (
           <img
             src={cover}
@@ -196,18 +251,27 @@ const AllService: React.FC = () => {
         ) : (
           <ImageWithBasePath src="assets/admin/img/services/service-01.jpg" className="me-2" alt="img" />
         )}
-        <span>{res.title}</span>
+        <span
+          style={{
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            flex: 1,
+          }}
+        >
+          {res.title}
+        </span>
       </Link>
     );
   };
 
   const renderStatus = (res: ListingRow) => {
     const cls =
-      res.status === 'Active' ? 'badge-active' :
-        res.status === 'Delete' ? 'badge-delete' :
-          res.status === 'Pending' ? 'badge-pending' :
-            res.status === 'Inactive' ? 'badge-inactive' : '';
-    return <h6 className={cls}>{res.status}</h6>;
+      res.status === 'active' ? 'badge-active' :
+        res.status === 'delete' ? 'badge-delete' :
+          res.status === 'draft' ? 'badge-pending' :
+            res.status === 'inactive' ? 'badge-inactive' : '';
+    return <h6 className={cls} style={{ textTransform: 'capitalize' }}>{res.status}</h6>;
   };
 
   const onDelete = async (id: string) => {
@@ -302,10 +366,15 @@ const AllService: React.FC = () => {
 
 
 
-  const totalText = useMemo(
-    () => `Showing 1-${Math.min(rows.length, 10)} of ${rows.length} results`,
-    [rows.length]
-  );
+  const totalText = useMemo(() => {
+    if (totalRecords === 0) return "No results found";
+
+    const start = pageState.first + 1;
+    const end = Math.min(pageState.first + pageState.rows, totalRecords);
+
+    return `Showing ${start}-${end} of ${totalRecords} results`;
+  }, [pageState, totalRecords]);
+
 
   return (
     <div className="page-wrapper page-settings">
@@ -358,7 +427,7 @@ const AllService: React.FC = () => {
             <div className="tab-sets">
               <div className="tab-contents-sets">
                 <ul>
-                <li><Link to="/services/all-services" className="active">All Listings</Link></li>
+                  <li><Link to="/services/all-services" className="active">All Listings</Link></li>
                   <li><Link to="/services/active-services" >Active</Link></li>
                   <li><Link to="/services/pending-services">Draft </Link></li>
                   <li><Link to="/services/deleted-services">Deleted </Link></li>
@@ -375,22 +444,86 @@ const AllService: React.FC = () => {
           <div className="col-12 ">
             <div className="table-resposnive table-div">
               <div className="table datatable">
+                <div className="filters-group-listing d-flex" style={{ width:'100%',gap: "10px" }}>
+                  <div className="form-group" style={{width:'19%'}}>
+                    <input
+                      type="text"
+                      value={searchTitle}
+                      onChange={(e) => {
+                        setSearchTitle(e.target.value);
+                        setPageState({ ...pageState, first: 0 }); // reset to first page
+                      }}
+                      placeholder="Search by Title"
+                      className="form-control"
+                      style={{ minWidth: "100%", height: '45px',fontSize:'12px' }}
+                    />
+                  </div>
+                  <div className="form-group" style={{width:'19%'}}>
+                    <Dropdown
+                      value={filterCity}
+                      options={Object.entries(cityMap).map(([id, name]) => ({ label: name, value: Number(id) }))}
+                      onChange={(e) => { setFilterCity(e.value); setPageState({ ...pageState, first: 0 }); }}
+                      placeholder="Select City"
+                      showClear
+                      className="w-100 p-inputwrapper-filled"
+                      
+                    />
+                  </div>
+                  <div className="form-group" style={{width:'19%'}}>
+                    <Dropdown
+                      value={filterSector}
+                      options={Object.entries(sectorMap).map(([id, name]) => ({ label: name, value: Number(id) }))}
+                      onChange={(e) => { setFilterSector(e.value); setPageState({ ...pageState, first: 0 }); }}
+                      placeholder="Select Sector"
+                      showClear
+                      className="w-100 p-inputwrapper-filled"
+                      
+                    />
+                  </div>
+                  <div className="form-group" style={{width:'19%'}}>
+                    <Dropdown
+                      value={filterMainCat}
+                      options={Object.entries(mainCatMap).map(([id, name]) => ({ label: name, value: Number(id) }))}
+                      onChange={(e) => { setFilterMainCat(e.value); setPageState({ ...pageState, first: 0 }); }}
+                      placeholder="Select Main Category"
+                      showClear
+                      className="w-100 p-inputwrapper-filled"
+                      
+                    />
+                  </div>
+                  <div className="form-group" style={{width:'19%'}}>
+                    <Dropdown
+                      value={filterSubCat}
+                      options={Object.entries(subCatMap).map(([id, name]) => ({ label: name, value: Number(id) }))}
+                      onChange={(e) => { setFilterSubCat(e.value); setPageState({ ...pageState, first: 0 }); }}
+                      placeholder="Select Sub Category"
+                      showClear
+                      className="w-100 p-inputwrapper-filled"
+                     
+                    />
+                  </div>
+                </div>
+
                 <DataTable
                   value={rows}
                   loading={loading}
                   paginator
-                  rows={10}
+                  first={pageState.first}
+                  rows={pageState.rows}
+                  totalRecords={totalRecords}
+                  onPage={(e) => setPageState(e)}
                   rowsPerPageOptions={[5, 10, 25, 50]}
                   paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                   currentPageReportTemplate="{first} to {last} of {totalRecords}"
                   tableStyle={{ minWidth: '60rem' }}
+                  lazy
                 >
                   <Column field="title" header="Title" sortable body={renderService} />
-                  {/* <Column field="city" header="City" sortable /> */}
+                  <Column field="city" header="City" sortable />
                   <Column field="sector" header="Sector" sortable />
                   <Column field="main_category" header="Main Category" sortable />
-                  {/* <Column field="sub_category" header="Sub Category(ies)" sortable />
-                  <Column field="tags" header="Tags" sortable />
+                  <Column field="sub_category" header="Sub Category(ies)" sortable />
+                  {/*  <Column field="tags" header="Tags" sortable />
                   <Column field="sub_tags" header="Sub Tags" sortable /> */}
                   <Column field="status" header="Status" sortable body={renderStatus} />
                   {/* <Column field="user_id" header="Created By" body={renderOwner} /> */}
