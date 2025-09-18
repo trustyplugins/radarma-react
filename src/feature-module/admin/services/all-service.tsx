@@ -71,7 +71,7 @@ const AllService: React.FC = () => {
   const [subTagMap, setSubTagMap] = useState<Record<number, string>>({});
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageState, setPageState] = useState({ first: 0, rows: 100 });
-  const [filterCity, setFilterCity] = useState<number | null>(null);
+  const [filterCity, setFilterCity] = useState<number | "empty" | null>(null);
   const [filterSector, setFilterSector] = useState<number | null>(null);
   const [filterMainCat, setFilterMainCat] = useState<number | null>(null);
   const [filterSubCat, setFilterSubCat] = useState<number | null>(null);
@@ -162,7 +162,15 @@ const AllService: React.FC = () => {
         .from('listings')
         .select('id,title,city_id,sector_ids,main_category_ids,sub_category_ids,tag_ids,sub_tag_ids,price,status,slug,user_id,created_at,gallery_urls', { count: 'exact' })
         .range(from, to);
-      if (filterCity) q = q.contains('city_id', [filterCity]);
+        if (filterCity) {
+          if (filterCity === "empty") {
+            q = q.or("city_id.is.null,city_id.eq.{}"); 
+            // if city_id is array, check empty array
+          } else {
+            q = q.contains("city_id", [Number(filterCity)]);
+          }
+        }
+        
       if (filterSector) q = q.contains('sector_ids', [filterSector]);
       if (filterMainCat) q = q.contains('main_category_ids', [filterMainCat]);
       if (filterSubCat) q = q.contains('sub_category_ids', [filterSubCat]);
@@ -461,7 +469,14 @@ const AllService: React.FC = () => {
                   <div className="form-group" style={{width:'19%'}}>
                     <Dropdown
                       value={filterCity}
-                      options={Object.entries(cityMap).map(([id, name]) => ({ label: name, value: Number(id) }))}
+                      options={[
+                        { label: "(No City)", value: "empty" }, // 👈 special empty option
+                        ...Object.entries(cityMap).map(([id, name]) => ({
+                          label: name,
+                          value: Number(id),
+                        })),
+                      ]}
+                      
                       onChange={(e) => { setFilterCity(e.value); setPageState({ ...pageState, first: 0 }); }}
                       placeholder="Select City"
                       showClear
