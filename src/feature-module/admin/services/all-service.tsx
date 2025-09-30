@@ -21,7 +21,7 @@ const sortOptions: SortOpt[] = [
 type ListingRaw = {
   id: string;
   title: string;
-  city_id: number | null;
+  city_id: number[] | null;
   sector_ids: number[] | null;
   main_category_ids: number[] | null;
   sub_category_ids: number[] | null;
@@ -146,8 +146,12 @@ const AllService: React.FC = () => {
   }, []);
 
   // helper: map ids -> names (joined)
-  const joinNames = (ids: number[] | null | undefined, map: Record<number, string>) =>
-    (ids ?? []).map(id => map[id]).filter(Boolean).join(', ');
+  const joinNames = (ids: number[] | null | undefined, map: Record<number, string>) => {
+    if (!ids) return '';
+    const unique = Array.from(new Set(ids)); // remove duplicate IDs
+    return unique.map(id => map[id]).filter(Boolean).join(', ');
+  };
+  
 
   // listings fetch + hydrate
   const fetchListings = async () => {
@@ -194,7 +198,7 @@ const AllService: React.FC = () => {
       const hydrated: ListingRow[] = (data as ListingRaw[]).map(r => ({
         id: r.id,
         title: r.title,
-        city: r.city_id ? (cityMap[r.city_id] ?? '') : '—',
+        city: joinNames(r.city_id, cityMap), 
         sector: joinNames(r.sector_ids, sectorMap),
         main_category: joinNames(r.main_category_ids, mainCatMap),
         sub_category: joinNames(r.sub_category_ids, subCatMap),
@@ -527,7 +531,7 @@ const AllService: React.FC = () => {
                   rows={pageState.rows}
                   totalRecords={totalRecords}
                   onPage={(e) => setPageState(e)}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  rowsPerPageOptions={[5, 10, 25, 50,100]}
                   paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                   currentPageReportTemplate="{first} to {last} of {totalRecords}"
                   tableStyle={{ minWidth: '60rem' }}
